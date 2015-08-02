@@ -23,6 +23,7 @@
 2. [Краткая история проекта Virtuozzo](#Краткая-история-проекта-virtuozzo)
 3. [Установка и подготовительные действия](#Установка-и-подготовительные-действия)
   - [Установка Virtuozzo с помощью ISO-образа (bare-metal installation)](#Установка-virtuozzo-с-помощью-iso-образа-bare-metal-installation)
+  - [Установка Virtuozzo на заранее установленный дистрибутив](#Установка-Virtuozzo-на-заранее-установленный-дистрибутив)
 4. [Ссылки](#Ссылки)
 5. [Лицензия](#Лицензия)
 
@@ -159,17 +160,18 @@ CRIU (Checkpoint/Restore In Userspace) — обеспечивает создан
 В 2007 году портирован на RHEL5.
 
 В 2011 году появилась идея создания проекта CRIU, OpenVZ портирован на RHEL6.
-В 2012 году доступна CRIU v0.1.
+В 2012 году стала доступна CRIU v0.1.
 
-В конце 2014 года компания Parallels анонсировала открытие кодовой базы Parallels Cloud Server и объединение ее с открытым OpenVZ.
+В конце 2014 года компания Odin анонсировала открытие кодовой базы Parallels Cloud Server и объединение ее с открытым OpenVZ.
 
 В апреле 2015 года был открыт репозиторий с ядром RHEL7 (3.10), в мае были открыты исходные коды пользовательских утилит, а в июне выложены тестовые сборки ISO-образов и RPM-пакеты.
 
 ## Установка и подготовительные действия
-Существует три способа установки Virtuozzo:
+Существует два способа установки Virtuozzo:
 * с помощью ISO-образа дистрибутива
 * с помощью установки пакетов и ядра на заранее установленный дистрибутив
-* установка на апстримное ядро
+
+Также существует возможность установки утилит Virtuozzo в качестве альтернативы LXC-утилит.
 
 ### Установка Virtuozzo с помощью ISO-образа (bare-metal installation)
 Дистрибутив Virtuozzo основан на операционой системе [CloudLinux](https://www.cloudlinux.com/) с патчами для ядра RHEL7, утилитами управления и модифицированным установщиком.
@@ -196,7 +198,7 @@ CRIU (Checkpoint/Restore In Userspace) — обеспечивает создан
 
 Необходимо для раздела `/` выделить не менее 8GB доступного дискового пространства.
 Размер раздела `swap` равен примерно половине объекма оперативной памяти.
-Все остальное дисковое пространство выделяется под раздел `/vz`.
+Все остальное дисковое пространство выделяется под раздел `/vz` с файловой системой ext4.
 
 *Настройки сетевого интерфейса и имени хоста*
 ![Настройки сети](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/network.png)
@@ -226,12 +228,35 @@ Password: пароль_пользователя_root
 [root@virtuozzo ~]#
 ```
 
+### Установка Virtuozzo на заранее установленный дистрибутив
+
+(TODO https://bugzilla.openvz.org/show_bug.cgi?id=3287)
+
+Поддерживаемые дистрибутивы:
+* Cloud Linux 7
+* CentOS 7
+* Scientific Linux 7
+* прочие дистрибутивы, основанные на RHEL7
+
+Установка пакетов на примере дистрибутива CentOS 7.
+
+Пакет virtuozzo-release содержит метаинформацию и yum-репозиторий:
+```
+[root@virtuozzo ~]# yum localinstall http://download.openvz.org/virtuozzo/releases/7.0/x86_64/os/Packages/v/virtuozzo-release-7.0.0-10.vz7.x86_64.rpm
+```
+
+Установка необходимых RPM-паетов:
+```
+[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel
+```
+
 ## Ссылки
 * http://openvz.org/History
 * https://openvz.org/Quick_installation
 * https://openvz.org/OpenVZ_with_upstream_kernel
 * https://openvz.org/Packages
 * http://openvz.org/Roadmap
+* https://openvz.org/Category:HOWTO
 
 ## Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
