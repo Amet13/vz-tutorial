@@ -23,7 +23,7 @@
 2. [Краткая история проекта Virtuozzo](#Краткая-история-проекта-virtuozzo)
 3. [Установка и подготовительные действия](#Установка-и-подготовительные-действия)
   - [Установка Virtuozzo с помощью ISO-образа (bare-metal installation)](#Установка-virtuozzo-с-помощью-iso-образа-bare-metal-installation)
-  - [Установка Virtuozzo на заранее установленный дистрибутив](#Установка-Virtuozzo-на-заранее-установленный-дистрибутив)
+  - [Установка Virtuozzo на заранее установленный дистрибутив](#Установка-virtuozzo-на-заранее-установленный-дистрибутив)
 4. [Ссылки](#Ссылки)
 5. [Лицензия](#Лицензия)
 
@@ -214,7 +214,7 @@ CRIU (Checkpoint/Restore In Userspace) — обеспечивает создан
 
 На этом установка Virtuozzo с помощью ISO-образа завершена.
 
-*Загрузчик Grub*
+*Меню загрузчика Grub*
 ![Grub](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/grub.png)
 
 Первый вход в систему осуществляется от пользователя `vzuser`, по SSH.
@@ -230,8 +230,6 @@ Password: пароль_пользователя_root
 
 ### Установка Virtuozzo на заранее установленный дистрибутив
 
-(TODO https://bugzilla.openvz.org/show_bug.cgi?id=3287)
-
 Поддерживаемые дистрибутивы:
 * Cloud Linux 7
 * CentOS 7
@@ -240,15 +238,32 @@ Password: пароль_пользователя_root
 
 Установка пакетов на примере дистрибутива CentOS 7.
 
-Пакет virtuozzo-release содержит метаинформацию и yum-репозиторий:
+Пакет virtuozzo-release содержит метаинформацию и yum-репозитории, необходимые для установки пакетов:
 ```
 [root@virtuozzo ~]# yum localinstall http://download.openvz.org/virtuozzo/releases/7.0/x86_64/os/Packages/v/virtuozzo-release-7.0.0-10.vz7.x86_64.rpm
 ```
 
 Установка необходимых RPM-паетов:
 ```
-[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel
+[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop
 ```
+
+В качестве зависимостей также установятся такие пакеты как:
+```
+criu libvirt lvm2 nfs-utils quota vcmmd vzctl vztt
+```
+и многие другие.
+
+После окончания установки пакетов необходимо перезагрузиться:
+```
+[root@virtuozzo ~]# reboot
+```
+
+В меню загрузчика должны появиться новые пункты `Virtuozzo 7`.
+Необходимо загрузиться с этого ядра.
+
+*Меню загрузчика Grub после установки Virtuozzo*
+![Grub](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/grub-vz.png)
 
 ## Ссылки
 * http://openvz.org/History
