@@ -24,6 +24,7 @@
 3. [Установка и подготовительные действия](#Установка-и-подготовительные-действия)
   - [Установка Virtuozzo с помощью ISO-образа (bare-metal installation)](#Установка-virtuozzo-с-помощью-iso-образа-bare-metal-installation)
   - [Установка Virtuozzo на заранее установленный дистрибутив](#Установка-virtuozzo-на-заранее-установленный-дистрибутив)
+  - [Подготовительные действия](#Подготовительные-действия)
 4. [Ссылки](#Ссылки)
 5. [Лицензия](#Лицензия)
 
@@ -171,8 +172,6 @@ CRIU (Checkpoint/Restore In Userspace) — обеспечивает создан
 * с помощью ISO-образа дистрибутива
 * с помощью установки пакетов и ядра на заранее установленный дистрибутив
 
-Также существует возможность установки утилит Virtuozzo в качестве альтернативы LXC-утилит.
-
 ### Установка Virtuozzo с помощью ISO-образа (bare-metal installation)
 Дистрибутив Virtuozzo основан на операционой системе [CloudLinux](https://www.cloudlinux.com/) с патчами для ядра RHEL7, утилитами управления и модифицированным установщиком.
 Рекомендуется именно этот способ установки Virtuozzo.
@@ -240,10 +239,10 @@ Password: пароль_пользователя_root
 
 Пакет virtuozzo-release содержит метаинформацию и yum-репозитории, необходимые для установки пакетов:
 ```
-[root@virtuozzo ~]# yum localinstall http://download.openvz.org/virtuozzo/releases/7.0/x86_64/os/Packages/v/virtuozzo-release-7.0.0-10.vz7.x86_64.rpm
+[root@virtuozzo ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0/x86_64/os/Packages/v/virtuozzo-release-7.0.0-10.vz7.x86_64.rpm
 ```
 
-Установка необходимых RPM-паетов:
+Установка необходимых RPM-пакетов:
 ```
 [root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop
 ```
@@ -265,15 +264,47 @@ criu libvirt lvm2 nfs-utils quota vcmmd vzctl vztt
 *Меню загрузчика Grub после установки Virtuozzo*
 ![Grub](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/grub-vz.png)
 
+### Подготовительные действия
+На сервере важно всегда обновлять программное обеспечение, так как в новых версиях не только могут добавлять новые возможности, но и исправлять уязвимости.
+Указанная ниже команда обновляет все существующие в системе пакеты:
+```
+[root@virtuozzo ~]# yum update
+```
+Для сервера очень важно, чтобы было установлено правильное время.
+Чтобы синхронизировать время с интернетом необходимо установить пакет `ntp`.
+
+Установка корректной временной зоны:
+```
+[root@virtuozzo ~]# timedatectl set-timezone Europe/Moscow
+[root@virtuozzo ~]# date
+Tue Aug  4 14:52:54 MSK 2015
+```
+Установка `ntp` и синхронизация времени с удаленными серверавми:
+```
+[root@virtuozzo ~]# yum install ntp
+[root@virtuozzo ~]# systemctl start ntpd
+[root@virtuozzo ~]# systemctl enable ntpd
+[root@virtuozzo ~]# ntpdate -q  0.pool.ntp.org  1.pool.ntp.org
+server 91.236.251.5, stratum 2, offset 0.002229, delay 0.05281
+server 82.193.117.90, stratum 1, offset -0.020269, delay 0.04845
+server 78.26.196.124, stratum 2, offset 0.003866, delay 0.05913
+server 217.175.0.36, stratum 3, offset -0.003749, delay 0.06514
+server 79.142.192.4, stratum 2, offset 0.006668, delay 0.05772
+server 195.138.69.242, stratum 2, offset 0.005080, delay 0.05731
+server 91.236.251.12, stratum 2, offset 0.002247, delay 0.05368
+server 91.198.10.20, stratum 2, offset 0.003745, delay 0.05481
+ 4 Aug 14:54:56 ntpdate[2804]: adjust time server 91.236.251.5 offset 0.002229 sec
+```
+
 ## Ссылки
-* http://openvz.org/History
+* https://openvz.org/History
 * https://openvz.org/Quick_installation
 * https://openvz.org/OpenVZ_with_upstream_kernel
 * https://openvz.org/Packages
-* http://openvz.org/Roadmap
+* https://openvz.org/Roadmap
 * https://openvz.org/Category:HOWTO
 
 ## Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
 
-[Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](http://creativecommons.org/licenses/by-sa/4.0/deed.ru)
+[Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
