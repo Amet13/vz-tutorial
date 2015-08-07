@@ -31,8 +31,13 @@
   - [Создание контейнера](#Создание-контейнера)
   - [Настройка контейнера](#Настройка-контейнера)
   - [Запуск и вход](#Запуск-и-вход)
-6. [Ссылки](#Ссылки)
-7. [Лицензия](#Лицензия)
+6. [Управление контейнерами](#Управление-контейнерами)
+  - [Управление состоянием контейнера](#Управление-состоянием-контейнера)
+  - [Клонирование контейнера](#Клонирование-контейнера)
+  - [Запуск команд в контейнере с хост-ноды](#Запуск-команд-в-контейнере-с-хост-ноды)
+  - [Расширенная информация о контейнере](#Расширенная-информация-о-контейнере)
+7. [Ссылки](#Ссылки)
+8. [Лицензия](#Лицензия)
 
 ## Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированное от аппаратной реализации, и обеспечивающее изоляцию вычислительных процессов.
@@ -207,8 +212,6 @@ CRIU (Checkpoint/Restore In Userspace) — обеспечивает создан
 
 *Настройки сетевого интерфейса и имени хоста*
 ![Настройки сети](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/network.png)
-
-В настройках сети необходимо указать настройки (скриншот).
 
 Также необходимо задать пароль пользователя `root` и создать локального пользователя, например `vzuser`.
 
@@ -451,13 +454,13 @@ The CT has been successfully started.
 Проверяем сетевые интерфейсы внутри гостевой ОС:
 ```
 [root@virtuozzo ~]# prlctl exec first ifconfig | grep "lo\|venet" -A 1
-lo        Link encap:Local Loopback  
+lo        Link encap:Local Loopback
           inet addr:127.0.0.1  Mask:255.0.0.0
 --
-venet0    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+venet0    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
           inet addr:127.0.0.1  P-t-P:127.0.0.1  Bcast:0.0.0.0  Mask:255.255.255.255
 --
-venet0:0  Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+venet0:0  Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
           inet addr:192.168.0.161  P-t-P:192.168.0.161  Bcast:192.168.0.255  Mask:255.255.255.0
 ```
 
@@ -488,6 +491,141 @@ logout
 [root@virtuozzo ~]#
 ```
 
+## Управление контейнерами
+### Управление состоянием контейнера
+Статус контейнера:
+```
+[root@virtuozzo ~]# prlctl status first
+CT first exist running
+[root@virtuozzo ~]# prlctl status second
+CT second exist stopped
+```
+
+По выводу команды можно наблюдать, что контейнер `first` существует и запущен, а контейнер `second` существует и остановлен.
+
+Остановка контейнера:
+```
+[root@virtuozzo ~]# prlctl stop first
+Stopping the CT...
+The CT has been successfully stopped.
+```
+
+Иногда нужно выключить контейнер как можно быстрее, например если контейнер был подвержен взлому.
+Для того чтобы срочно выключить контейнер, нужно использовать ключ `--kill`:
+```
+[root@virtuozzo ~]# prlctl stop first --kill
+Stopping the CT...
+The CT has been forcibly stopped
+```
+
+Перезапуск контейнера:
+```
+[root@virtuozzo ~]# prlctl restart first
+Restarting the CT...
+The CT has been successfully restarted.
+```
+
+Для удаление контейнера, его нужно сначала остановить:
+```
+[root@virtuozzo ~]# prlctl stop
+Stopping the CT...
+The CT has been successfully stopped.
+[root@virtuozzo ~]# prlctl delete second
+Removing the CT...
+The CT has been successfully removed.
+```
+
+Команда выполняет удаление частной области сервера и переименовывает файл конфигурации, дописывая к нему `.destroyed`.
+
+### Клонирование контейнера
+Virtuozzo позволяет клонировать контейнеры:
+```
+[root@virtuozzo ~]# prlctl clone first --name second
+Clone the first CT to CT second...
+The CT has been successfully cloned.
+[root@virtuozzo ~]# prlctl list -a
+UUID                                    STATUS       IP_ADDR         T  NAME
+{3d32522a-80af-4773-b9fa-ea4915dee4b3}  running      192.168.0.161   CT first
+{54bc2ba6-b040-469e-9fda-b0eabda822d4}  stopped      192.168.0.161   CT second
+```
+
+При клонировании контейнера необходимо помнить о смене IP адреса, иначе при попытке запуска будет наблюдаться ошибка:
+```
+[root@virtuozzo ~]# prlctl start second
+Starting the CT...
+Failed to start the CT: PRL_ERR_VZCTL_OPERATION_FAILED
+```
+
+Сначала нужно удалить старые IP адреса:
+```
+[root@virtuozzo ~]# prlctl set second --ipdel 192.168.0.161/24
+[root@virtuozzo ~]# prlctl set second --ipdel fe80::20c:29ff:fe01:fb08
+```
+
+Затем добавить новые:
+```
+[root@virtuozzo ~]# prlctl set second --ipadd 192.168.0.162/24
+[root@virtuozzo ~]# prlctl set second --ipadd fe80::20c:29ff:fe01:fb09
+```
+
+После этого контейнер можно запустить:
+```
+[root@virtuozzo ~]# prlctl start second
+Starting the CT...
+The CT has been successfully started.
+```
+
+### Запуск команд в контейнере с хост-ноды
+Пример запуска команды в контейнере:
+```
+[root@virtuozzo ~]# prlctl exec first cat /etc/issue
+Debian GNU/Linux 8 \n \l
+```
+
+Иногда бывает нужно выполнить команду на нескольких контейнерах.
+Для этого можно использовать команду:
+```
+[root@virtuozzo ~]# for i in `prlctl list -o name -H`; do echo "CT $i"; prlctl exec $i cat /etc/issue; done
+CT first
+Debian GNU/Linux 8 \n \l
+
+CT second
+Debian GNU/Linux 8 \n \l
+```
+
+### Расширенная информация о контейнере
+```
+[root@virtuozzo ~]# prlctl list -i first
+Autostop: suspend
+Autocompact: on
+Undo disks: off
+Boot order:
+EFI boot: off
+Allow select boot device: off
+External boot device:
+Remote display: mode=off address=0.0.0.0
+Remote display state: stopped
+Hardware:
+  cpu cpus=unlimited VT-x accl=high mode=32 cpuunits=1000 ioprio=4
+  memory 512Mb
+  video 0Mb 3d acceleration=highest vertical sync=yes
+  memory_quota auto
+  hdd0 (+) image='/vz/private/3d32522a-80af-4773-b9fa-ea4915dee4b3/root.hdd' type='expanded' 10240Mb mnt=/
+  venet0 (+) type='routed' ips='192.168.0.161/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB08/64 '
+Host Shared Folders: (-)
+Features:
+Encrypted: no
+Faster virtual machine: on
+Adaptive hypervisor: off
+Disabled Windows logo: on
+Auto compress virtual disks: on
+Nested virtualization: off
+PMU virtualization: off
+Offline management: (-)
+Hostname: first.virtuozzo.localhost
+DNS Servers: 192.168.0.1
+```
+
 ## Ссылки
 * https://openvz.org/History
 * https://openvz.org/Quick_installation
@@ -495,6 +633,7 @@ logout
 * https://openvz.org/Packages
 * https://openvz.org/Roadmap
 * https://openvz.org/Category:HOWTO
+* http://docs.openvz.org/virtuozzo_7_users_guide.webhelp/
 
 ## Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
