@@ -563,6 +563,11 @@ Failed to start the CT: PRL_ERR_VZCTL_OPERATION_FAILED
 [root@virtuozzo ~]# prlctl set second --ipadd 192.168.0.162/24
 [root@virtuozzo ~]# prlctl set second --ipadd fe80::20c:29ff:fe01:fb09
 ```
+Смена hostname:
+```
+[root@virtuozzo ~]# prlctl set second --hostname second.virtuozzo.localhost
+The CT has been successfully configured.
+```
 
 После этого контейнер можно запустить:
 ```
@@ -590,7 +595,8 @@ CT second
 Debian GNU/Linux 8 \n \l
 ```
 
-### Расширенная информация о контейнере
+### Расширенная информация о контейнерах
+Подробная информация о контейнере:
 ```
 [root@virtuozzo ~]# prlctl list -i first
 Autostop: suspend
@@ -623,9 +629,45 @@ Hostname: first.virtuozzo.localhost
 DNS Servers: 192.168.0.1
 ```
 
+Существует также возможность просмотра дополнительной информации о контейнерах:
+```
+[root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
+T  STATUS       NAME                             HOSTNAME                         DIST            IP_ADDR
+CT running      second                           second.virtuozzo.localhost       debian          192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09  
+CT running      first                            first.virtuozzo.localhost        debian          192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08  
+```
+
+Список всех доступных полей:
+```
+[root@virtuozzo ~]# prlctl list -L
+uuid                 UUID
+envid                ENVID
+status               STATUS
+name                 NAME
+dist                 DIST
+owner                OWNER
+system-flags         SYSTEM_FLAGS
+description          DESCRIPTION
+numproc              NPROC
+ip                   IP_ADDR
+ip_configured        IP_ADDR
+hostname             HOSTNAME
+netif                NETIF
+mac                  MAC
+features             FEATURES
+location             LOCATION
+iolimit              IOLIMIT
+netdev               NETDEV
+type                 T
+ha_enable            HA_ENABLE
+ha_prio              HA_PRIO
+-                    -
+```
+
 ## Управление ресурсами
+TODO
 
-
+COMING SOON...
 
 ## Ссылки
 * https://openvz.org/History
