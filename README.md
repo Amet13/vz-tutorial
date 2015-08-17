@@ -364,7 +364,7 @@ vps.vzpkgtools.conf-sample
 В этих конфигурационных файлах описаны контрольные параметры ресурсов, выделенное дисковое пространство, оперативная память и т.д.
 Например, при использовании конфига `ve-vswap.512MB.conf-sample`, создается контейнер с дисковым пространством 10GB, оперативной памятью 512MB и swap 512MB:
 ```
-[root@virtuozzo ~]# cat /etc/vz/conf/ve-vswap.512MB.conf-sample | grep "DISKSPACE\|PHYSPAGES\|SWAPPAGES\|DISKINODES"
+[root@virtuozzo ~]# grep "DISKSPACE\|PHYSPAGES\|SWAPPAGES\|DISKINODES" /etc/vz/conf/ve-vswap.512MB.conf-sample
 PHYSPAGES="131072:131072"
 SWAPPAGES="131072"
 DISKSPACE="10485760:10485760"
@@ -406,7 +406,7 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 Конфигурационный файл, в котором указаны директивы по умолчанию `/etc/vz/vz.conf`.
 По умолчанию, используется шаблон `centos-6` и конфигурационный файл `basic`:
 ```
-[root@virtuozzo ~]# cat /etc/vz/vz.conf | grep "CONFIGFILE\|DEF_OSTEMPLATE"
+[root@virtuozzo ~]# grep "CONFIGFILE\|DEF_OSTEMPLATE" /etc/vz/vz.conf
 CONFIGFILE="basic"
 DEF_OSTEMPLATE=".centos-6"
 ```
@@ -745,8 +745,8 @@ set cpuunits 2000
 Если система многопроцессорная, то установка параметра `CPUMASK` может пригодиться для привязки контейнера к конкретным процессорам.
 В случае восьмипроцессорной системы можно привязать контейнер к процессорам 0-3, 6, 7:
 ```
-[root@virtuozzo ~]# prlctl set first --cpumask 0-1,6,7
-set cpu mask 0,1
+[root@virtuozzo ~]# prlctl set first --cpumask 0-3,6,7
+set cpu mask 0-3,6,7
 ```
 
 Верхний лимит процессорного времени, который задается параметром `CPULIMIT` является долей общей мощности процессора в процентах:
@@ -764,7 +764,7 @@ set cpulimit 600Mhz
 В параметре `CPUS` задается число доступных для контейнера процессорных ядер.
 Контейнер по умолчанию получает в использование все процессорные ядра:
 ```
-[root@virtuozzo ~]# CPUINFO="cat /proc/cpuinfo | grep processor"
+[root@virtuozzo ~]# CPUINFO="grep processor /proc/cpuinfo"
 [root@virtuozzo ~]# prlctl exec first $CPUINFO
 processor	: 0
 processor	: 1
@@ -789,7 +789,7 @@ processor	: 1
 Аналогично все параметры можно вручную прописать в конфигурационный файл контейнера:
 ```
 CPUUNITS="2000"
-CPUMASK="0-1"
+CPUMASK="0-3,6,7"
 CPULIMIT="15"
 CPULIMIT_MHZ="600"
 CPUS="2"
@@ -798,6 +798,39 @@ NODEMASK="0"
 
 Утилиты контроля ресурсов процессора, гарантируют любому контейнеру количество времени центрального процессора, которое собственно и получает этот контейнер.
 При этом контейнер может потреблять больше времени, чем определено этой величиной, если нет другого конкурирующего с ним за время CPU сервера.
+
+<!--### Network
+Шейпинг трафика
+Возможность ограничения трафика контейнерам (шейпинг) задается глобальным параметром `TRAFFIC_SHAPING`.
+По умолчанию этот параметр отключен:
+```
+[root@virtuozzo ~]# grep TRAFFIC_SHAPING /etc/vz/vz.conf
+TRAFFIC_SHAPING=no
+[root@virtuozzo ~]# sed -i 's/TRAFFIC_SHAPING=no/TRAFFIC_SHAPING=yes/g' /etc/vz/vz.conf
+[root@virtuozzo ~]# grep TRAFFIC_SHAPING /etc/vz/vz.conf
+TRAFFIC_SHAPING=yes
+```
+Нужно ли рестартить шейпер?
+где указать bandwidth
+shaping
+rate
+ratebound
+Network bandwidth management
+    --rate <class:KBits>
+        Specifies the bandwidth guarantee of the virtual machine for the specified network class.
+
+    --ratebound <yes|no>
+        If  set  to "yes", the bandwidth guarantee is also the limit for the virtual machine.  If set to "no", the bandwidth limit is defined by the TOTALRATE parameter in
+        the /etc/vz/vz.conf file.
+
+
+
+### Disk I/O
+ioprio
+iolimit
+iopslimit
+
+-->
 
 ## Ссылки
 * https://openvz.org/History
