@@ -27,6 +27,7 @@
   - [Дисковые квоты](#Дисковые-квоты)
   - [Процессор](#Процессор)
   - [Операции ввода вывода](#Операции-ввода-вывода)
+  - [Память](#Память)
 8. [Ссылки](#Ссылки)
 9. [Лицензия](#Лицензия)
 
@@ -387,7 +388,7 @@ DISKINODES="1310720:1310720"
 
 Установка конфигурационного файла шаблона на примере `vswap.1GB`:
 ```
-[root@virtuozzo ~]# prlctl set third --applyconfig vswap.1GB
+[root@virtuozzo ~]# prlctl set first --applyconfig vswap.1GB
 The CT has been successfully configured.
 ```
 
@@ -536,7 +537,7 @@ The CT has been successfully restarted.
 [root@virtuozzo ~]# prlctl stop
 Stopping the CT...
 The CT has been successfully stopped.
-[root@virtuozzo ~]# prlctl delete second
+[root@virtuozzo ~]# prlctl delete first
 Removing the CT...
 The CT has been successfully removed.
 ```
@@ -723,10 +724,10 @@ QUOTATIME="600"
 
 Аналогично, можно установить эти параметры с помощью `vzctl`:
 ```
-[root@virtuozzo ~]# vzctl set third --diskspace 5G:6G --save
-Resize the image /vz/private/4730cba8-deed-4168-9f9e-34373e618026/root.hdd to 6291456K
+[root@virtuozzo ~]# vzctl set first --diskspace 5G:6G --save
+Resize the image /vz/private/3d32522a-80af-4773-b9fa-ea4915dee4b3/root.hdd to 6291456K
 dumpe2fs 1.42.9 (28-Dec-2013)
-[root@virtuozzo ~]# vzctl set third --diskinodes 10000:110000 --save
+[root@virtuozzo ~]# vzctl set first --diskinodes 10000:110000 --save
 ```
 
 ### Процессор
@@ -855,12 +856,22 @@ IOPRIO="7"
 IOLIMIT="20971520"
 IOPSLIMIT="300"
 ```
-<!--
+
 ### Память
-PHYSPAGES - оператива
-SWAPPAGES - свап
-VM_OVERCOMMIT - ООМ
-vswap - тюнинг, numproc, numfile
+Ограничение физической памяти и swap задаются в конфигурационном файле контейнера параметрами `PHYSPAGES` и `SWAPPAGES`.
+Значения устанавливаются в блоках, например:
+```
+PHYSPAGES="262144:262144"
+SWAPPAGES="262144:262144"
+```
+равняются значениям в 1024MB (262144 блок / 256 = 1024MB).
+
+С помощью `prlctl` значения параметров можно указываеть в метрической системе:
+```
+[root@virtuozzo ~]# prlctl set first --memsize 1G --swappages 1G
+Set the memsize parameter to 1024Mb.
+Set swappages 262144
+```
 
 <!--### Network
 Шейпинг трафика
@@ -873,6 +884,12 @@ TRAFFIC_SHAPING=no
 [root@virtuozzo ~]# grep TRAFFIC_SHAPING /etc/vz/vz.conf
 TRAFFIC_SHAPING=yes
 ```
+
+TRAFFIC_SHAPING=no
+BANDWIDTH="eth0:100000"
+TOTALRATE="eth0:1:4000"
+RATE="eth0:1:8"
+
 Нужно ли рестартить шейпер?
 где указать bandwidth
 shaping
@@ -885,14 +902,6 @@ Network bandwidth management
     --ratebound <yes|no>
         If  set  to "yes", the bandwidth guarantee is also the limit for the virtual machine.  If set to "no", the bandwidth limit is defined by the TOTALRATE parameter in
         the /etc/vz/vz.conf file.
-
-
-
-### Disk I/O
-ioprio
-iolimit
-iopslimit
-
 -->
 
 ## Ссылки
