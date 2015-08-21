@@ -28,6 +28,7 @@
   - [Процессор](#Процессор)
   - [Операции ввода/вывода](#Операции-вводавывода)
   - [Память](#Память)
+  - [Мониторинг ресурсов](#Мониторинг-ресурсов)
 8. [Ссылки](#Ссылки)
 9. [Лицензия](#Лицензия)
 
@@ -891,36 +892,126 @@ Set the memsize parameter to 1024Mb.
 Set swappages 262144
 ```
 
-<!--### Network
-Шейпинг трафика
-Возможность ограничения трафика контейнерам (шейпинг) задается глобальным параметром `TRAFFIC_SHAPING`.
-По умолчанию этот параметр отключен:
+### Мониторинг ресурсов
+С помощью утилиты `vznetstat` можно увидеть входящий и исходящий трафик (в байтах и пакетах) для всех контейнеров:
 ```
-[root@virtuozzo ~]# grep TRAFFIC_SHAPING /etc/vz/vz.conf
-TRAFFIC_SHAPING=no
-[root@virtuozzo ~]# sed -i 's/TRAFFIC_SHAPING=no/TRAFFIC_SHAPING=yes/g' /etc/vz/vz.conf
-[root@virtuozzo ~]# grep TRAFFIC_SHAPING /etc/vz/vz.conf
-TRAFFIC_SHAPING=yes
+[root@virtuozzo ~]# vznetstat
+UUID                                 Net.Class     Input(bytes) Input(pkts)        Output(bytes) Output(pkts)
+0                                    0                244486        3024              1567749        2491
+54bc2ba6-b040-469e-9fda-b0eabda822d4 0                     0           0                    0           0
+4730cba8-deed-4168-9f9e-34373e618026 0                     0           0                    0           0
+3d32522a-80af-4773-b9fa-ea4915dee4b3 0               2925512       49396             49398885       49254
 ```
 
-TRAFFIC_SHAPING=no
-BANDWIDTH="eth0:100000"
-TOTALRATE="eth0:1:4000"
-RATE="eth0:1:8"
+Для конкретного контейнера можно воспользоваться ключом `-v`:
+```
+[root@virtuozzo ~]# vznetstat -v 3d32522a-80af-4773-b9fa-ea4915dee4b3
+UUID                                 Net.Class     Input(bytes) Input(pkts)        Output(bytes) Output(pkts)
+3d32522a-80af-4773-b9fa-ea4915dee4b3 0               2925512       49396             49398885       49254
+```
 
-Нужно ли рестартить шейпер?
-где указать bandwidth
-shaping
-rate
-ratebound
-Network bandwidth management
-    --rate <class:KBits>
-        Specifies the bandwidth guarantee of the virtual machine for the specified network class.
+Утилита `vzstat` позволяет узнать информацию по нагрузке на контейнер, занятым ресурсам и состоянии сети:
+```
+[root@virtuozzo ~]# vzstat -p 3d32522a-80af-4773-b9fa-ea4915dee4b3 -t
+loadavg		0 0 0
+CTNum		3
+procs		289 1 288 0 0 0 0
+CPU		16 0 2 3 95
+sched latency	372 9
+Mem		989 360 0
+Mem latency	1 0
+  ZONE0 (DMA): size 15MB, act 4MB, inact 4MB, free 4MB (0/0/1)
+  ZONE1 (DMA32): size 1007MB, act 243MB, inact 274MB, free 355MB (43/54/64)
+  Mem lat (ms): A0 1, K0 0, U0 1, K1 0, U1 0
+  Slab pages: 62MB/62MB (ino 22MB, de 0MB, bh 1MB, pb 0MB)
+Swap		952 952 0.000 0.000
+Net stats	0.382 5949 5.542 5820
+if br0 stats	0.171 2975 2.771 2910
+if lo stats	0.000 0 0.000 0
+if virbr1-nic stats	0.000 0 0.000 0
+if enp0s3 stats	0.211 2975 2.771 2910
+if virbr1 stats	0.000 0 0.000 0
+Disks stats	0.000 0.000
 
-    --ratebound <yes|no>
-        If  set  to "yes", the bandwidth guarantee is also the limit for the virtual machine.  If set to "no", the bandwidth limit is defined by the TOTALRATE parameter in
-        the /etc/vz/vz.conf file.
--->
+    CTID ST   %VM    %KM        PROC     CPU     SOCK FCNT MLAT IP
+```
+
+`vzpid` позволяет узнать к какому контейнеру принадлежит процесс, это может быть полезно при просмотре списка процессов с хост-ноды и поиска "процесса-грузчика":
+```
+[root@virtuozzo ~]# top
+top - 20:43:26 up 33 min,  1 user,  load average: 0.00, 0.01, 0.05
+Tasks: 178 total,   1 running, 176 sleeping,   1 stopped,   0 zombie
+%Cpu(s):  1.7 us,  3.6 sy,  0.0 ni, 88.5 id,  0.0 wa,  0.0 hi,  6.2 si,  0.0 st
+KiB Mem :  1013704 total,   382912 free,   138656 used,   492136 buff/cache
+KiB Swap:   975868 total,   975868 free,        0 used.   688028 avail Mem
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+   5625 33        20   0  364432   6232   1284 S  26.2  0.6   0:03.20 apache2
+...
+[root@virtuozzo ~]# vzpid 5625
+Pid	VEID	Name
+5625	3d32522a-80af-4773-b9fa-ea4915dee4b3	apache2
+```
+
+Утилита `vzps` аналогична утилите `ps`, она позволяет вывести список процессов и их состояние для конкретного контейнера:
+```
+[root@virtuozzo ~]# vzps aufx -E 3d32522a-80af-4773-b9fa-ea4915dee4b3
+    USER     PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+       0    2432  0.0  0.0      0     0 ?        S    20:10   0:00 [kthreadd/3d3252]
+       0    2433  0.0  0.0      0     0 ?        S    20:10   0:00  \_ [khelper]
+       0    2420  0.0  0.3  28168  3136 ?        Ss   20:10   0:00 init -z
+     101    3088  0.0  0.1  26168  1448 ?        Ss   20:10   0:00  \_ /lib/systemd/systemd-networkd
+       0    3117  0.0  0.1  28856  1620 ?        Ss   20:10   0:00  \_ /lib/systemd/systemd-journald
+       0    3135  0.0  0.1  38916  1624 ?        Ss   20:10   0:00  \_ /lib/systemd/systemd-udevd
+       0    3376  0.0  0.3  55156  3128 ?        Ss   20:10   0:00  \_ /usr/sbin/sshd -D
+     102    3380  0.0  0.1  25732  1092 ?        Ss   20:10   0:00  \_ /lib/systemd/systemd-resolved
+       0    3382  0.0  0.1  25884  1120 ?        Ss   20:10   0:00  \_ /usr/sbin/cron -f
+       0    3388  0.0  0.1 182848  1884 ?        Ssl  20:10   0:00  \_ /usr/sbin/rsyslogd -n
+       0    3433  0.0  0.0  12648   840 ?        Ss+  20:10   0:00  \_ /sbin/agetty --noclear tty2 linux
+       0    3434  0.0  0.0  12648   840 ?        Ss+  20:10   0:00  \_ /sbin/agetty --noclear --keep-baud console 115200 38400 9600 linux
+       0    3508  0.0  0.0  20200   956 ?        Ss   20:10   0:00  \_ /usr/sbin/xinetd -pidfile /run/xinetd.pid -stayalive -inetd_compat -inetd_ipv6
+       0    3617  0.0  0.1  65452  1164 ?        Ss   20:10   0:00  \_ /usr/sbin/saslauthd -a pam -c -m /var/run/saslauthd -n 2
+       0    3625  0.0  0.0  65452   836 ?        S    20:10   0:00  |   \_ /usr/sbin/saslauthd -a pam -c -m /var/run/saslauthd -n 2
+       0    3755  0.0  0.2  73496  2724 ?        Ss   20:10   0:00  \_ /usr/sbin/apache2 -k start
+      33    5747  0.2  0.5 363364  5300 ?        Sl   20:46   0:00  |   \_ /usr/sbin/apache2 -k start
+       0    4074  0.0  0.2  36144  2388 ?        Ss   20:10   0:00  \_ /usr/lib/postfix/master
+     105    4081  0.0  0.2  38208  2316 ?        S    20:10   0:00      \_ pickup -l -t unix -u -c
+     105    4082  0.0  0.2  38256  2336 ?        S    20:10   0:00      \_ qmgr -l -t unix -u
+
+```
+
+Для утилиты `top` также существует аналог `vztop`.
+Пример просмотра списка процессов отсортированных по нагрузке на процессор для контейнера `first`:
+```
+[root@virtuozzo ~]# vztop -E 3d32522a-80af-4773-b9fa-ea4915dee4b3 -o %CPU -b
+vztop - 21:13:45 up  1:03,  1 user,  load average: 0.01, 0.04, 0.32
+Tasks:  20 total,   0 running,  20 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.7 sy,  0.0 ni, 98.5 id,  0.1 wa,  0.0 hi,  0.5 si,  0.0 st
+KiB Mem :  1013704 total,   378752 free,   136600 used,   498352 buff/cache
+KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
+
+                                    CTID     PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    5747 33        20   0  364424   6304   1280 S  40.0  0.6   0:03.37 apache2
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    2420 root      20   0   28168   3136   1908 S   0.0  0.3   0:00.32 systemd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    2432 root      20   0       0      0      0 S   0.0  0.0   0:00.00 kthreadd/3d3252
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    2433 root      20   0       0      0      0 S   0.0  0.0   0:00.00 khelper
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3088 101       20   0   26168   1448   1204 S   0.0  0.1   0:00.06 systemd-network
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3117 root      20   0   28856   1620   1356 S   0.0  0.2   0:00.12 systemd-journal
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3135 root      20   0   38916   1624   1132 S   0.0  0.2   0:00.04 systemd-udevd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3376 root      20   0   55156   3128   2460 S   0.0  0.3   0:00.01 sshd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3380 102       20   0   25732   1092    896 S   0.0  0.1   0:00.00 systemd-resolve
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3382 root      20   0   25884   1120    900 S   0.0  0.1   0:00.01 cron
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3388 root      20   0  182848   1884   1412 S   0.0  0.2   0:00.02 rsyslogd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3433 root      20   0   12648    840    692 S   0.0  0.1   0:00.00 agetty
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3434 root      20   0   12648    840    692 S   0.0  0.1   0:00.00 agetty
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3508 root      20   0   20200    956    756 S   0.0  0.1   0:00.00 xinetd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3617 root      20   0   65452   1164    328 S   0.0  0.1   0:00.00 saslauthd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3625 root      20   0   65452    836      0 S   0.0  0.1   0:00.00 saslauthd
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    3755 root      20   0   73496   2724   1512 S   0.0  0.3   0:00.58 apache2
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    4074 root      20   0   36144   2388   1848 S   0.0  0.2   0:00.06 master
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    4081 105       20   0   38208   2316   1776 S   0.0  0.2   0:00.04 pickup
+    3d32522a-80af-4773-b9fa-ea4915dee4b3    4082 105       20   0   38256   2336   1792 S   0.0  0.2   0:00.02 qmgr
+```
 
 ## Ссылки
 * https://openvz.org/History
