@@ -369,7 +369,7 @@ DISKINODES="655360:655360"
 ```
 
 Это удобно, так как существует возможность создавать свои конфигурационные файлы для различных вариаций контейнеров.
-Cоздадим свой конфигурационный файл, на базе уже существующего `vswap.512MB`.
+Создадим свой конфигурационный файл, на базе уже существующего `vswap.512MB`.
 Исправим в нем только значения `PHYSPAGES`, `SWAPPAGES`, `DISKSPACE`, `DISKINODES`:
 ```
 [root@virtuozzo ~]# cp /etc/vz/conf/ve-vswap.512MB.conf-sample /etc/vz/conf/ve-vswap.1GB.conf-sample
@@ -532,7 +532,7 @@ Restarting the CT...
 The CT has been successfully restarted.
 ```
 
-Для удаление контейнера, его нужно сначала остановить:
+Для удаления контейнера его нужно сначала остановить:
 ```
 [root@virtuozzo ~]# prlctl stop
 Stopping the CT...
@@ -644,8 +644,8 @@ DNS Servers: 192.168.0.1
 ```
 [root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
 T  STATUS       NAME                             HOSTNAME                         DIST            IP_ADDR
-CT running      second                           second.virtuozzo.localhost       debian          192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09  
-CT running      first                            first.virtuozzo.localhost        debian          192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08  
+CT running      second                           second.virtuozzo.localhost       debian          192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
+CT running      first                            first.virtuozzo.localhost        debian          192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
 ```
 
 Список всех доступных полей:
@@ -903,7 +903,7 @@ Overcommiting — возможность использования больше
 
 Значение `VM_OVERCOMMIT` указывает число, во сколько раз больше памяти сможет использовать контейнер в случае необходимости.
 По умолчанию значение `VM_OVERCOMMIT` равно 1.5.
-То есть для контейнера установлено, с 1024MB оперативной памяти и 1024MB swap, суммарно доступно 2048MB памяти, в случае необходимости контейнер cможет использовать (2048MB * 1.5 = 3072MB) памяти.
+То есть для контейнера установлено, с 1024MB оперативной памяти и 1024MB swap, суммарно доступно 2048MB памяти, в случае необходимости контейнер сможет использовать (2048MB * 1.5 = 3072MB) памяти.
 
 Для изменения значения достаточно прописать параметр в конфигурационный файл контейнера и перезапустить его:
 ```
