@@ -252,7 +252,7 @@ Password: пароль_пользователя_root
 
 Установка необходимых RPM-пакетов:
 ```
-[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop
+[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop vzmigrate
 ```
 
 В качестве зависимостей также установятся такие пакеты как `criu`, `libvirt`, `lvm2`, `nfs-utils`, `quota`, `vcmmd`, `vzctl`, `vztt` и другие.
@@ -820,7 +820,7 @@ NODEMASK="0"
 Изменение значения параметра можно регулировать от 0 (максимальный приоритет) до 7:
 ```
 [root@virtuozzo ~]# prlctl set first --ioprio 6
-set ioprio 7
+set ioprio 6
 ```
 
 Параметр `IOLIMIT` позволяет ограничивать пропускную способность операций ввода/вывода.
@@ -852,7 +852,7 @@ set IOPS limit 300
 
 Параметры можно указать вручную в конфигурационном файле контейнера:
 ```
-IOPRIO="7"
+IOPRIO="6"
 IOLIMIT="20971520"
 IOPSLIMIT="300"
 ```
@@ -876,13 +876,13 @@ root@first:/# dd if=/dev/zero of=test bs=1048576 count=10
 ```
 
 ### Память
-В Virtuozzo используется управление памятью 4 поколения с помощью vcmmd.
+В Virtuozzo используется управление памятью четвертого поколения с помощью vcmmd.
 В прошлом же использовалось управление памятью с помощью:
 * VSwap (третье поколение)
 * SLM (второе поколение)
 * User Beancounters (первое поколение)
 
-С пользовательской стороны управление памятью с помощью VSwap и vcmmd ничем не отличается, однако с точки зрения реализации, vcmmd уже находится в ванильном ядре и не требует патчей со стороны разработчиков Virtuozzo.
+С пользовательской стороны управление памятью с помощью VSwap и vcmmd ничем не отличаются, однако с точки зрения реализации, vcmmd уже находится в ванильном ядре и не требует патчей со стороны разработчиков Virtuozzo.
 
 Ограничение физической памяти и swap задаются в конфигурационном файле контейнера параметрами `PHYSPAGES` и `SWAPPAGES`.
 Значения устанавливаются в блоках, например:
@@ -1047,6 +1047,7 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
 * https://openvz.org/Roadmap
 * https://openvz.org/Category:HOWTO
 * http://docs.openvz.org/virtuozzo_7_users_guide.webhelp/
+* https://openvz.org/Books
 
 ## Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
