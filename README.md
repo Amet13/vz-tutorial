@@ -29,8 +29,9 @@
   - [Операции ввода/вывода](#Операции-вводавывода)
   - [Память](#Память)
   - [Мониторинг ресурсов](#Мониторинг-ресурсов)
-8. [Ссылки](#Ссылки)
-9. [Лицензия](#Лицензия)
+8. [Миграция контейнеров](#Миграция-контейнеров)
+9. [Ссылки](#Ссылки)
+10. [Лицензия](#Лицензия)
 
 ## Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированное от аппаратной реализации, и обеспечивающее изоляцию вычислительных процессов.
@@ -252,7 +253,7 @@ Password: пароль_пользователя_root
 
 Установка необходимых RPM-пакетов:
 ```
-[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop vzmigrate
+[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop
 ```
 
 В качестве зависимостей также установятся такие пакеты как `criu`, `libvirt`, `lvm2`, `nfs-utils`, `quota`, `vcmmd`, `vzctl`, `vztt` и другие.
@@ -1037,6 +1038,62 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
     3d32522a-80af-4773-b9fa-ea4915dee4b3    4074 root      20   0   36144   2388   1848 S   0.0  0.2   0:00.06 master
     3d32522a-80af-4773-b9fa-ea4915dee4b3    4081 105       20   0   38208   2316   1776 S   0.0  0.2   0:00.04 pickup
     3d32522a-80af-4773-b9fa-ea4915dee4b3    4082 105       20   0   38256   2336   1792 S   0.0  0.2   0:00.02 qmgr
+```
+
+## Миграция контейнеров
+В текущей версии Virtuozzo пока недоступна возможность онлайн-миграции контейнеров без их отключения.
+
+Пример оффлайн миграции контейнера с хост-ноды `vz-source` на `vz-dest`.
+
+Устанавливаем на `vz-source` последние версии `vzmigrate`, `rsync` и `screen`:
+```
+[root@vz-source ~]# yum localinstall http://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/os/Packages/r/rsync-3.0.9-15.vz7.7.x86_64.rpm
+[root@vz-source ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/os/Packages/v/vzmigrate-7.0.10-1.vz7.x86_64.rpm
+```
+
+Аналогично устанавливаем на `vz-dest` последние версии `vzmigrate` и `rsync`.
+
+Создаем и копируем SSH-ключ с `vz-source` на `vz-dest` для беспарольной аутентификации:
+```
+[root@vz-source ~]# cd /root && ssh-keygen
+[root@vz-source ~]# ssh-copy-id root@192.168.0.180
+```
+
+Останавливаем контейнер перед миграцией:
+```
+[root@vz-source ~]# prlctl stop third
+Stopping the CT...
+The CT has been successfully stopped.
+```
+
+Запускаем миграцию в `screen`:
+```
+[root@vz-source ~]# screen
+[root@vz-source ~]# vzmigrate 192.168.0.180 third
+Connection to destination node (192.168.0.180) is successfully established
+Moving/copying CT 4730cba8-deed-4168-9f9e-34373e618026 -> CT 4730cba8-deed-4168-9f9e-34373e618026, [], [] ...
+locking 4730cba8-deed-4168-9f9e-34373e618026
+Checking bindmounts
+Check cluster ID
+Checking keep dir for private area copy
+Checking technologies
+Checking templates for CT
+Checking IP addresses on destination node
+Check target CT name: third
+Checking RATE parameters in config
+Checking ploop format 2
+copy CT private /vz/private/4730cba8-deed-4168-9f9e-34373e618026
+Successfully completed
+```
+
+Проверяем на `vz-dest` наличие только что смигрированного контейнера, если он смигрирован, то запускаем его:
+```
+[root@vz-dest ~]# prlctl list third
+UUID                                    STATUS       IP_ADDR         T  NAME
+{4730cba8-deed-4168-9f9e-34373e618026}  stopped      192.168.0.163   CT third
+[root@vz-dest ~]# prlctl start third
+Starting the CT...
+The CT has been successfully started.
 ```
 
 ## Ссылки
