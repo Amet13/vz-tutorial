@@ -245,15 +245,16 @@ Password: пароль_пользователя_root
 * прочие дистрибутивы, основанные на RHEL7
 
 Установка пакетов на примере дистрибутива CentOS 7.
+Virtuozzo 7 beta 2.
 
 Пакет `virtuozzo-release` содержит метаинформацию и yum-репозитории, необходимые для установки пакетов:
 ```
-[root@virtuozzo ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0/x86_64/os/Packages/v/virtuozzo-release-7.0.0-10.vz7.x86_64.rpm
+[root@virtuozzo ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/os/Packages/v/virtuozzo-release-7.0.0-13.vz7.x86_64.rpm
 ```
 
 Установка необходимых RPM-пакетов:
 ```
-[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel ploop
+[root@virtuozzo ~]# yum install prlctl prl-disp-service vzkernel
 ```
 
 В качестве зависимостей также установятся такие пакеты как `criu`, `libvirt`, `lvm2`, `nfs-utils`, `quota`, `vcmmd`, `vzctl`, `vztt` и другие.
@@ -303,10 +304,14 @@ server 91.198.10.20, stratum 2, offset 0.003745, delay 0.05481
 
 ## Управление шаблонами гостевых ОС
 На данный момент Virtuozzo поддерживает такие гостевые ОС:
-* CentOS 7 (x86_64)
+* CentOS 5 (x86)
 * CentOS 6 (x86_64)
-* Ubuntu 14.04 LTS (x86_64)
+* CentOS 7 (x86_64)
 * Debian 8 (x86_64)
+* Fedora 22 (x86_64)
+* Ubuntu 14.04 (x86_64)
+* Ubuntu 14.10 (x86_64)
+* Ubuntu 15.04 (x86_64)
 
 Просмотр списка уже имеющихся локальных шаблонов:
 ```
@@ -330,9 +335,20 @@ ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuoz
 debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
-Обновление кэша шаблонов:
+Установка и обновление кэша шаблонов:
 ```
+[root@virtuozzo ~]# vzpkg create cache
 [root@virtuozzo ~]# vzpkg update cache
+```
+
+Просмотр даты последнего обновления кэша:
+```
+[root@virtuozzo ~]# vzpkg list -O
+centos-5-x86                       2015-09-19 16:26:20
+centos-7-x86_64                    2015-09-19 16:11:10
+centos-6-x86_64                    2015-09-19 16:41:16
+debian-8.0-x86_64                  2015-09-19 17:21:14
+ubuntu-14.04-x86_64                2015-09-19 15:59:39
 ```
 
 ## Создание и настройка контейнеров
