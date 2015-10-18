@@ -316,8 +316,19 @@ server 91.198.10.20, stratum 2, offset 0.003745, delay 0.05481
 Просмотр списка уже имеющихся локальных шаблонов:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
-centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
+centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
+```
+
+Доступные шаблоны:
+```
+[root@virtuozzo ~]# vzpkg list --available --with-summary
+centos-7-x86_64
+debian-8.0-x86_64
+fedora-22-x86_64
+ubuntu-14.04-x86_64
+ubuntu-14.10-x86_64
+ubuntu-15.04-x86_64
 ```
 
 Установка всех доступных шаблонов:
@@ -328,11 +339,15 @@ centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
 После этого можно увидеть список доступных локально шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
-centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
+centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuozzo Template
 debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-14.10-x86_64                :Ubuntu 14.10 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-15.04-x86_64                :Ubuntu 15.04 (for AMD64/Intel EM64T) Virtuozzo Template
+fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Установка и обновление кэша шаблонов:
@@ -344,11 +359,16 @@ debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo
 Просмотр даты последнего обновления кэша:
 ```
 [root@virtuozzo ~]# vzpkg list -O
-centos-5-x86                       2015-09-19 16:26:20
-centos-7-x86_64                    2015-09-19 16:11:10
-centos-6-x86_64                    2015-09-19 16:41:16
-debian-8.0-x86_64                  2015-09-19 17:21:14
-ubuntu-14.04-x86_64                2015-09-19 15:59:39
+# vzpkg list -O
+centos-5-x86                       2015-10-19 00:37:27
+centos-6-x86_64                    2015-10-19 00:43:44
+centos-7-x86_64                    2015-10-19 00:48:16
+debian-8.0-x86_64                  2015-10-19 01:00:28
+debian-8.0-x86_64-minimal          2015-10-19 01:20:22
+ubuntu-14.10-x86_64                2015-10-19 01:34:18
+ubuntu-14.04-x86_64                2015-10-19 01:50:54
+ubuntu-15.04-x86_64                2015-10-19 02:10:18
+fedora-22-x86_64                   2015-10-19 01:24:25
 ```
 
 ## Создание и настройка контейнеров
