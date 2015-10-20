@@ -308,6 +308,7 @@ server 91.198.10.20, stratum 2, offset 0.003745, delay 0.05481
 * CentOS 6 (x86_64)
 * CentOS 7 (x86_64)
 * Debian 8 (x86_64)
+* Debian 8 minimal (x86_64)
 * Fedora 22 (x86_64)
 * Ubuntu 14.04 (x86_64)
 * Ubuntu 14.10 (x86_64)
@@ -359,7 +360,6 @@ fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo 
 Просмотр даты последнего обновления кэша:
 ```
 [root@virtuozzo ~]# vzpkg list -O
-# vzpkg list -O
 centos-5-x86                       2015-10-19 00:37:27
 centos-6-x86_64                    2015-10-19 00:43:44
 centos-7-x86_64                    2015-10-19 00:48:16
