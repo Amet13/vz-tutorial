@@ -326,6 +326,7 @@ centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo T
 [root@virtuozzo ~]# vzpkg list --available --with-summary
 centos-7-x86_64
 debian-8.0-x86_64
+debian-8.0-x86_64-minimal
 fedora-22-x86_64
 ubuntu-14.04-x86_64
 ubuntu-14.10-x86_64
