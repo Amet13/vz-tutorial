@@ -163,7 +163,7 @@ memory cgroups присутстсвует в ванильном ядре, поэ
 На графике можно наблюдать, что OpenVZ обеспечивает практическую нативную пропускную способность 10Gb сети (9.7Gb отправка и 9.87Gb прием).
 
 ## Краткая история проекта Virtuozzo
-В 1999 году возникла идея создания Linux контейнеров, а уже в 2002 году компания SWsoft представила первый релиз коммерческой версии Virtuozzo. В том же 2002 году появились первые клиенты в Кремниевой долине.
+В 1999 году возникла идея создания Linux-контейнеров, а уже в 2002 году компания SWsoft представила первый релиз коммерческой версии Virtuozzo. В том же 2002 году появились первые клиенты в Кремниевой долине.
 
 В 2004 году выпуск Virtuozzo для Windows.
 В 2005 году было принято решение о разделении Virtuozzo на два отдельных проекта, свободный OpenVZ (под лицензией GNU GPL) и проприетарный Virtuozzo.
@@ -189,7 +189,7 @@ memory cgroups присутстсвует в ванильном ядре, поэ
 
 Текущая последняя версия ISO-образа (beta2) доступна по адресу: https://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/iso/
 
-После записи дистрибутива на носитель, можно приступать к настройке Virtuozzo.
+После записи дистрибутива на носитель, можно приступать к установке Virtuozzo.
 Для этого необходимо загрузиться с носителя.
 
 *Экран установки Virtuozzo после загрузки с носителя*
@@ -245,7 +245,7 @@ Password: пароль_пользователя_root
 * прочие дистрибутивы, основанные на RHEL7
 
 Установка пакетов на примере дистрибутива CentOS 7.
-Virtuozzo 7 beta 2.
+Virtuozzo 7 beta2.
 
 Пакет `virtuozzo-release` содержит метаинформацию и yum-репозитории, необходимые для установки пакетов:
 ```
@@ -1083,13 +1083,10 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
 
 Пример оффлайн миграции контейнера с хост-ноды `vz-source` на `vz-dest`.
 
-Устанавливаем на `vz-source` последние версии `vzmigrate`, `rsync` и `screen`:
+Устанавливаем на `vz-source` и `vzdest` последние версии `vzmigrate` и `rsync`:
 ```
-[root@vz-source ~]# yum localinstall http://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/os/Packages/r/rsync-3.0.9-15.vz7.7.x86_64.rpm
-[root@vz-source ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0-beta2/x86_64/os/Packages/v/vzmigrate-7.0.10-1.vz7.x86_64.rpm
+[root@vz-source ~]# yum install vzmigrate rsync
 ```
-
-Аналогично устанавливаем на `vz-dest` последние версии `vzmigrate` и `rsync`.
 
 Создаем и копируем SSH-ключ с `vz-source` на `vz-dest` для беспарольной аутентификации:
 ```
@@ -1106,7 +1103,7 @@ The CT has been successfully stopped.
 
 Запускаем миграцию в `screen`:
 ```
-[root@vz-source ~]# screen
+[root@vz-source ~]# screen -S migrate-dest
 [root@vz-source ~]# vzmigrate 192.168.0.180 third
 Connection to destination node (192.168.0.180) is successfully established
 Moving/copying CT 4730cba8-deed-4168-9f9e-34373e618026 -> CT 4730cba8-deed-4168-9f9e-34373e618026, [], [] ...
