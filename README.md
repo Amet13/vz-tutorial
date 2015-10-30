@@ -598,8 +598,7 @@ The CT has been successfully removed.
 Команда выполняет удаление частной области сервера и переименовывает файл конфигурации, дописывая к нему `.destroyed`.
 
 ### Переустановка контейнера
-Существует возможность переустановки ОС в контейнере с сохранением данных в файловой системе.
-Для этого существует команда `vzctl reinstall`.
+Для переустановки ОС в контейнере, существует команда `vzctl reinstall`.
 
 Прежде чем переустанавливать контейнер его нужно сначала остановить:
 ```
@@ -613,13 +612,12 @@ The CT has been successfully stopped.
 [root@localhost ~]# vzctl reinstall first
 ...
 Container was successfully reinstalled
-
 [root@localhost ~]# prlctl start first
 Starting the CT...
 The CT has been successfully started.
 ```
 
-По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы прошлого контейнера (частная область) в каталог `/old`:
+По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера:
 ```
 [root@localhost ~]# prlctl exec first stat /old
   File: '/old'
@@ -632,7 +630,7 @@ Change: 2015-10-30 14:50:46.284194584 +0300
  Birth: -
 ```
 
-Для того, чтобы не бэкапить частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`:
+Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`:
 ```
 [root@localhost ~]# vzctl reinstall first --skipbackup
 ```
