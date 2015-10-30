@@ -602,24 +602,24 @@ The CT has been successfully removed.
 
 Прежде чем переустанавливать контейнер его нужно сначала остановить:
 ```
-[root@localhost ~]# prlctl stop first
+[root@virtuozzo ~]# prlctl stop first
 Stopping the CT...
 The CT has been successfully stopped.
 ```
 
 Переустановка и старт контейнера:
 ```
-[root@localhost ~]# vzctl reinstall first
+[root@virtuozzo ~]# vzctl reinstall first
 ...
 Container was successfully reinstalled
-[root@localhost ~]# prlctl start first
+[root@virtuozzo ~]# prlctl start first
 Starting the CT...
 The CT has been successfully started.
 ```
 
 По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера:
 ```
-[root@localhost ~]# prlctl exec first stat /old
+[root@virtuozzo ~]# prlctl exec first stat /old
   File: '/old'
   Size: 4096      	Blocks: 8          IO Block: 4096   directory
 Device: 8610b651h/2249242193d	Inode: 262145      Links: 22
@@ -632,7 +632,7 @@ Change: 2015-10-30 14:50:46.284194584 +0300
 
 Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`:
 ```
-[root@localhost ~]# vzctl reinstall first --skipbackup
+[root@virtuozzo ~]# vzctl reinstall first --skipbackup
 ```
 
 ### Клонирование контейнера
