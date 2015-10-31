@@ -290,16 +290,7 @@ Tue Aug  4 14:52:54 MSK 2015
 [root@virtuozzo ~]# yum install ntp
 [root@virtuozzo ~]# systemctl start ntpd
 [root@virtuozzo ~]# systemctl enable ntpd
-[root@virtuozzo ~]# ntpdate -q  0.pool.ntp.org  1.pool.ntp.org
-server 91.236.251.5, stratum 2, offset 0.002229, delay 0.05281
-server 82.193.117.90, stratum 1, offset -0.020269, delay 0.04845
-server 78.26.196.124, stratum 2, offset 0.003866, delay 0.05913
-server 217.175.0.36, stratum 3, offset -0.003749, delay 0.06514
-server 79.142.192.4, stratum 2, offset 0.006668, delay 0.05772
-server 195.138.69.242, stratum 2, offset 0.005080, delay 0.05731
-server 91.236.251.12, stratum 2, offset 0.002247, delay 0.05368
-server 91.198.10.20, stratum 2, offset 0.003745, delay 0.05481
- 4 Aug 14:54:56 ntpdate[2804]: adjust time server 91.236.251.5 offset 0.002229 sec
+[root@virtuozzo ~]# ntpdate -q  0.ru.pool.ntp.org  1.ru.pool.ntp.org
 ```
 
 ## Управление шаблонами гостевых ОС
@@ -321,7 +312,7 @@ centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
 centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
-Доступные шаблоны:
+Доступные удаленно шаблоны:
 ```
 [root@virtuozzo ~]# vzpkg list --available --with-summary
 centos-7-x86_64
@@ -352,11 +343,13 @@ ubuntu-15.04-x86_64                :Ubuntu 15.04 (for AMD64/Intel EM64T) Virtuoz
 fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
-Установка и обновление кэша шаблонов:
+Установка и обновление кэша шаблона:
 ```
-[root@virtuozzo ~]# vzpkg create cache
-[root@virtuozzo ~]# vzpkg update cache
+[root@virtuozzo ~]# vzpkg create cache ubuntu-14.04-x86_64
+[root@virtuozzo ~]# vzpkg update cache ubuntu-14.04-x86_64
 ```
+
+Если не указывать имя шаблона, то установка и обновление кэша произойдет для всех имеющихся шаблонов.
 
 Просмотр даты последнего обновления кэша:
 ```
@@ -464,9 +457,9 @@ DEF_OSTEMPLATE=".centos-6"
 [root@virtuozzo ~]# prlctl set first --ipadd fe80::20c:29ff:fe01:fb08
 ```
 
-Установка DNS сервера и hostname:
+Установка DNS серверов и hostname:
 ```
-[root@virtuozzo ~]# prlctl set first --nameserver 192.168.0.1
+[root@virtuozzo ~]# prlctl set first --nameserver 192.168.0.1,192.168.0.2
 [root@virtuozzo ~]# prlctl set first --hostname first.virtuozzo.localhost
 ```
 
@@ -477,7 +470,14 @@ DEF_OSTEMPLATE=".centos-6"
 
 Установка пароля суперпользователя:
 ```
-[root@virtuozzo ~]# prlctl set first --userpasswd root:p0oT
+[root@virtuozzo ~]# prlctl set first --userpasswd root:eVjfsDkTE63s5Nw
+```
+
+Для генерации паролей рекомендуется установить утилиту `pwgen`:
+```
+[root@virtuozzo ~]# yum install pwgen
+[root@virtuozzo ~]# pwgen -s 15 1
+eVjfsDkTE63s5Nw
 ```
 
 Пароль будет установлен в контейнер, в файл `/etc/shadow` и не будет сохранен в конфигурационный файл контейнера.
@@ -518,7 +518,7 @@ first.virtuozzo.localhost
 Проверяем доступность контейнера в сети и корректность пароля суперпользователя:
 ```
 [root@virtuozzo ~]# ssh root@192.168.0.161
-root@192.168.0.161's password: p0oT
+root@192.168.0.161's password: eVjfsDkTE63s5Nw
 root@first:~#
 ```
 
@@ -584,7 +584,7 @@ Resuming the CT...
 The CT has been successfully resumed.
 ```
 
-Для удаления контейнера его нужно сначала остановить:
+Для удаления контейнера существует команда `delete`, перед удалением, контейнер нужно сначала остановить:
 ```
 [root@virtuozzo ~]# prlctl stop
 Stopping the CT...
@@ -616,19 +616,7 @@ Starting the CT...
 The CT has been successfully started.
 ```
 
-По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера:
-```
-[root@virtuozzo ~]# prlctl exec first stat /old
-  File: '/old'
-  Size: 4096      	Blocks: 8          IO Block: 4096   directory
-Device: 8610b651h/2249242193d	Inode: 262145      Links: 22
-Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
-Access: 2015-10-30 14:52:46.953006412 +0300
-Modify: 2015-10-30 14:43:31.537615772 +0300
-Change: 2015-10-30 14:50:46.284194584 +0300
- Birth: -
-```
-
+По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера.
 Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`:
 ```
 [root@virtuozzo ~]# vzctl reinstall first --skipbackup
