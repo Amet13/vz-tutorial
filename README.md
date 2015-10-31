@@ -31,8 +31,9 @@
   - [Память](#Память)
   - [Мониторинг ресурсов](#Мониторинг-ресурсов)
 8. [Миграция контейнеров](#Миграция-контейнеров)
-9. [Ссылки](#Ссылки)
-10. [Лицензия](#Лицензия)
+9. [Планы](#Планы)
+10. [Ссылки](#Ссылки)
+11. [Лицензия](#Лицензия)
 
 ## Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированное от аппаратной реализации, и обеспечивающее изоляцию вычислительных процессов.
@@ -1171,14 +1172,22 @@ Starting the CT...
 The CT has been successfully started.
 ```
 
+## Планы
+* 2015 — Virtuozzo 7 Technical Preview — Virtual machines.
+Цель: интеграция виртуальных машина на основе KVM в Virtuozzo
+* 2016 — Virtuozzo 7 Technical Preview 2 — Containers.
+Цель: живая миграция контейнеров с использованием CRIU
+* 2016 — Virtuozzo 7 Technical Preview 2 — Virtual machines
+* 2016 — Virtuozzo RC
+* 2016 — Virtuozzo RTM
+
 ## Ссылки
 * https://openvz.org/History
-* https://openvz.org/Quick_installation
 * https://openvz.org/OpenVZ_with_upstream_kernel
 * https://openvz.org/Packages
 * https://openvz.org/Roadmap
 * https://openvz.org/Category:HOWTO
-* http://docs.openvz.org/virtuozzo_7_users_guide.webhelp/
+* http://docs.openvz.org
 * https://openvz.org/Books
 
 ## Лицензия
