@@ -1174,7 +1174,7 @@ The CT has been successfully started.
 
 ## Планы
 * 2015 — Virtuozzo 7 Technical Preview — Virtual machines.
-Цель: интеграция виртуальных машина на основе KVM в Virtuozzo
+Цель: интеграция виртуальных машин на основе KVM в Virtuozzo
 * 2016 — Virtuozzo 7 Technical Preview 2 — Containers.
 Цель: живая миграция контейнеров с использованием CRIU
 * 2016 — Virtuozzo 7 Technical Preview 2 — Virtual machines
@@ -1182,13 +1182,13 @@ The CT has been successfully started.
 * 2016 — Virtuozzo RTM
 
 ## Ссылки
+* http://docs.openvz.org
+* https://openvz.org/Books
 * https://openvz.org/History
 * https://openvz.org/OpenVZ_with_upstream_kernel
 * https://openvz.org/Packages
 * https://openvz.org/Roadmap
 * https://openvz.org/Category:HOWTO
-* http://docs.openvz.org
-* https://openvz.org/Books
 
 ## Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
