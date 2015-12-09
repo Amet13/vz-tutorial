@@ -279,48 +279,34 @@ Virtuozzo 7 beta2.
 ```
 [root@virtuozzo ~]# yum update
 ```
-Для сервера очень важно, чтобы было установлено правильное время.
+Для сервера важно, чтобы было установлено правильное время.
 Чтобы синхронизировать время с интернетом необходимо установить пакет `ntp`.
 
 Установка корректной временной зоны:
 ```
 [root@virtuozzo ~]# timedatectl set-timezone Europe/Moscow
-[root@virtuozzo ~]# date
-Tue Aug  4 14:52:54 MSK 2015
 ```
 Установка `ntp` и синхронизация времени с удаленными серверами:
 ```
 [root@virtuozzo ~]# yum install ntp
 [root@virtuozzo ~]# systemctl start ntpd
 [root@virtuozzo ~]# systemctl enable ntpd
-[root@virtuozzo ~]# ntpdate -q  0.ru.pool.ntp.org  1.ru.pool.ntp.org
+[root@virtuozzo ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
 ```
 
 ## Управление шаблонами гостевых ОС
-На данный момент Virtuozzo поддерживает такие гостевые ОС:
-* CentOS 5 (x86)
-* CentOS 6 (x86_64)
-* CentOS 7 (x86_64)
-* Debian 8 (x86_64)
-* Debian 8 minimal (x86_64)
-* Fedora 22 (x86_64)
-* Ubuntu 14.04 (x86_64)
-* Ubuntu 14.10 (x86_64)
-* Ubuntu 15.04 (x86_64)
-
-Просмотр списка уже имеющихся локальных шаблонов:
+Просмотр списка уже имеющихся локальных шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
 centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
+centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Доступные удаленно шаблоны:
 ```
 [root@virtuozzo ~]# vzpkg list --available --with-summary
-centos-7-x86_64
 debian-8.0-x86_64
-debian-8.0-x86_64-minimal
 fedora-22-x86_64
 ubuntu-14.04-x86_64
 ubuntu-14.10-x86_64
@@ -331,19 +317,23 @@ ubuntu-15.04-x86_64
 ```
 [root@virtuozzo ~]# vzpkg list --available --with-summary | xargs vzpkg install template
 ```
+Альтернативный вариант установки шаблонов:
+```
+[root@virtuozzo ~]# yum install debian-8.0-x86_64-ez fedora-22-x86_64-ez ubuntu-14.04-x86_64-ez ubuntu-14.10-x86_64-ez ubuntu-15.04-x86_64-ez
+```
 
 После этого можно увидеть список доступных локально шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
-centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
-centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
-centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
+fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo Template
 ubuntu-14.10-x86_64                :Ubuntu 14.10 (for AMD64/Intel EM64T) Virtuozzo Template
 ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuozzo Template
 ubuntu-15.04-x86_64                :Ubuntu 15.04 (for AMD64/Intel EM64T) Virtuozzo Template
-fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
+centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
+centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
+centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Установка и обновление кэша шаблона:
@@ -352,20 +342,20 @@ fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo 
 [root@virtuozzo ~]# vzpkg update cache ubuntu-14.04-x86_64
 ```
 
-Если не указывать имя шаблона, то установка и обновление кэша произойдет для всех имеющихся шаблонов.
+Если не указывать имя шаблона, то установка или обновление кэша произойдет для всех имеющихся шаблонов.
 
 Просмотр даты последнего обновления кэша:
 ```
 [root@virtuozzo ~]# vzpkg list -O
-centos-5-x86                       2015-10-19 00:37:27
-centos-6-x86_64                    2015-10-19 00:43:44
-centos-7-x86_64                    2015-10-19 00:48:16
-debian-8.0-x86_64                  2015-10-19 01:00:28
-debian-8.0-x86_64-minimal          2015-10-19 01:20:22
+fedora-22-x86_64                   2015-10-19 01:24:25
 ubuntu-14.10-x86_64                2015-10-19 01:34:18
 ubuntu-14.04-x86_64                2015-10-19 01:50:54
 ubuntu-15.04-x86_64                2015-10-19 02:10:18
-fedora-22-x86_64                   2015-10-19 01:24:25
+debian-8.0-x86_64                  2015-10-19 01:00:28
+debian-8.0-x86_64-minimal          2015-10-19 01:20:22
+centos-5-x86                       2015-10-19 00:37:27
+centos-7-x86_64                    2015-10-19 00:48:16
+centos-6-x86_64                    2015-10-19 00:43:44
 ```
 
 ## Создание и настройка контейнеров
