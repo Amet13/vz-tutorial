@@ -1,6 +1,4 @@
-# Руководство по созданию и управлению контейнерами на базе Virtuozzo
-
-*К сожалению руководство не включает в себя описание управления виртуальными машинами, если у вас есть желание помочь, предоставив на некоторое время выделенный сервер для тестирования, пожалуйста обратитесь ко мне на почту [admin@amet13.name](mailto:admin@amet13.name).*
+# Руководство по созданию и управлению контейнерами и виртуальными машинами на базе Virtuozzo
 
 ## <a name='toc'></a>Содержание
 1. [Введение в виртуализацию](#intro)
@@ -410,7 +408,7 @@ DISKINODES="1310720:1310720"
 ```
 Таким образом, при использовании этого конфигурационного файла, будет создаваться контейнер, которому будет доступно 20GB выделенного дискового пространства, 1GB оперативной памяти и 1GB swap.
 
-Установка конфигурационного файла шаблона на примере `vswap.1GB`:
+Установка конфигурационного файла шаблона на примере `vswap.1GB` (контейнер должен быть создан):
 ```
 [root@virtuozzo ~]# prlctl set first --applyconfig vswap.1GB
 The CT has been successfully configured.
@@ -440,7 +438,7 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 ```
 [root@virtuozzo ~]# grep "CONFIGFILE\|DEF_OSTEMPLATE" /etc/vz/vz.conf
 CONFIGFILE="basic"
-DEF_OSTEMPLATE=".centos-6"
+DEF_OSTEMPLATE=".centos-7"
 ```
 
 Если планируется создание большого количества однотипных контейнеров, основываясь на одном и том же конфиге, то значения можно исправить на нужные.
@@ -471,8 +469,15 @@ DEF_OSTEMPLATE=".centos-6"
 [root@virtuozzo ~]# prlctl set first --userpasswd root:eVjfsDkTE63s5Nw
 ```
 
-Для генерации паролей рекомендуется установить утилиту `pwgen`:
+Сгенерировать пароль можно штатными средствами Linux:
 ```
+[root@virtuozzo ~]# cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 15 | head -1
+eVjfsDkTE63s5Nw
+```
+
+Или воспользоваться утилитой `pwgen`:
+```
+[root@virtuozzo ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
 [root@virtuozzo ~]# yum install pwgen
 [root@virtuozzo ~]# pwgen -s 15 1
 eVjfsDkTE63s5Nw
@@ -637,6 +642,8 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 [root@virtuozzo ~]# prlctl start second
 Starting the CT...
 Failed to start the CT: PRL_ERR_VZCTL_OPERATION_FAILED
+Unable to add ip 192.168.0.161: Address already in use
+Failed to start the Container
 ```
 
 Сначала нужно удалить старые IP адреса:
@@ -685,7 +692,23 @@ Debian GNU/Linux 8 \n \l
 ### <a name='extra-info'></a>Расширенная информация о контейнерах
 Подробная информация о контейнере:
 ```
-[root@virtuozzo ~]# prlctl list -i first
+[root@virtuozzo ~]# prlctl list -i fourth
+[root@localhost ~]# prlctl list -i first
+INFO
+ID: {22c418d7-948b-456e-9d84-d59ab5ead661}
+EnvID: 22c418d7-948b-456e-9d84-d59ab5ead661
+Name: fourth
+Description:
+Type: CT
+State: running
+OS: centos7
+Template: no
+Uptime: 00:00:00 (since 2016-02-09 17:04:41)
+Home: /vz/private/22c418d7-948b-456e-9d84-d59ab5ead661
+Owner: root
+Effective owner: owner
+GuestTools: state=possibly_installed
+Autostart: on
 Autostop: suspend
 Autocompact: on
 Undo disks: off
@@ -699,9 +722,9 @@ Hardware:
   cpu cpus=unlimited VT-x accl=high mode=32 cpuunits=1000 ioprio=4
   memory 512Mb
   video 0Mb 3d acceleration=highest vertical sync=yes
-  memory_quota auto
-  hdd0 (+) image='/vz/private/3d32522a-80af-4773-b9fa-ea4915dee4b3/root.hdd' type='expanded' 10240Mb mnt=/
-  venet0 (+) type='routed' ips='192.168.0.161/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB08/64 '
+  memory_guarantee auto
+  hdd0 (+) image='/vz/private/22c418d7-948b-456e-9d84-d59ab5ead661/root.hdd' type='expanded' 10240Mb mnt=/
+  venet0 (+) type='routed' ips='192.168.0.164/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB10/64 '
 Host Shared Folders: (-)
 Features:
 Encrypted: no
@@ -712,8 +735,9 @@ Auto compress virtual disks: on
 Nested virtualization: off
 PMU virtualization: off
 Offline management: (-)
-Hostname: first.virtuozzo.localhost
-DNS Servers: 192.168.0.1
+Hostname: fourth.virtuozzo.localhost
+DNS Servers: 192.168.0.1 192.168.0.2
+Search Domains: 192.168.0.1
 ```
 
 Существует также возможность просмотра дополнительной информации о контейнерах:
@@ -1184,7 +1208,7 @@ The CT has been successfully started.
 * https://bugs.openvz.org/secure/Dashboard.jspa
 
 ## [⬆](#toc) <a name='todo'></a>TODO
-* Управление виртуальными машинами (*необходим выделенный сервер для тестирования*)
+* Управление виртуальными машинами
 * Проброс устройств (fuse/tun/tap/nfs/pptp)
 * Онлайн-миграции
 * Управление сетью в Virtuozzo (veth/vlan/шейпинг)
