@@ -12,7 +12,9 @@
   - [Установка Virtuozzo с помощью ISO-образа (bare-metal installation)](#bare-metal)
   - [Установка Virtuozzo на заранее установленный дистрибутив](#exists-distro)
   - [Подготовительные действия](#prepare)
-4. [Управление шаблонами гостевых ОС](#templates)
+4. [Управление шаблонами гостевых ОС и приложений](#templates)
+  - [Шаблоны гостевых ОС](#guest-os)
+  - [Шаблоны приложений](#app-templ)
 5. [Создание и настройка контейнеров](#containers)
   - [Конфигурационные файлы](#configs)
   - [Создание контейнера](#create-ct)
@@ -297,7 +299,10 @@ Virtuozzo 7 beta3.
 [root@virtuozzo ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
 ```
 
-## [⬆](#toc) <a name='templates'></a>Управление шаблонами гостевых ОС
+## [⬆](#toc) <a name='templates'></a>Управление шаблонами гостевых ОС и приложений
+### <a name='guest-os'></a>Шаблоны гостевых ОС
+Шаблоны гостевых ОС используются для создания контейнеров.
+
 Просмотр списка уже имеющихся локальных шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
@@ -359,6 +364,62 @@ debian-8.0-x86_64-minimal          2015-10-19 01:20:22
 centos-5-x86                       2015-10-19 00:37:27
 centos-7-x86_64                    2015-10-19 00:48:16
 centos-6-x86_64                    2015-10-19 00:43:44
+```
+
+### <a name='app-templ'></a>Шаблоны приложений
+Существует возможность установки шаблонов приложений для контейнеров.
+Основное отличие между шаблонами гостевых ОС и шаблонами приложений в том, что шаблоны гостевых ОС используются для создания контейнеров, а шаблоны приложений, обеспечивают дополнительное ПО для уже имеющихся контейнеров.
+
+Просмотр списка шаблонов приложений для `centos-7-x86_64`:
+```
+[root@virtuozzo ~]# vzpkg list centos-7-x86_64
+centos-7-x86_64                    2016-02-09 17:01:05
+centos-7-x86_64      mod_ssl       
+centos-7-x86_64      jsdk          
+centos-7-x86_64      cyrus-imap    
+centos-7-x86_64      jre           
+centos-7-x86_64      docker        
+centos-7-x86_64      mailman       
+centos-7-x86_64      devel         
+centos-7-x86_64      mysql         
+centos-7-x86_64      php           
+centos-7-x86_64      spamassassin  
+centos-7-x86_64      vzftpd        
+centos-7-x86_64      postgresql    
+centos-7-x86_64      tomcat        
+```
+
+Пример установки шаблона приложений tomcat и jre:
+```
+[root@virtuozzo ~]# vzpkg list fifth
+centos-7-x86_64                    2016-02-09 17:00:57
+[root@virtuozzo ~]# vzpkg install fifth tomcat jre
+[root@virtuozzo ~]# prlctl exec fifth systemctl start tomcat
+[root@virtuozzo ~]# prlctl exec fifth systemctl status tomcat | grep Active
+   Active: active (running) since Tue 2016-02-09 19:56:43 MSK; 41s ago
+```
+
+После установки можно проверить список установленных шаблонов для контейнера:
+```
+[root@virtuozzo ~]# vzpkg list fifth
+centos-7-x86_64                    2016-02-09 17:00:57
+centos-7-x86_64      tomcat        2016-02-09 19:56:03
+centos-7-x86_64      jre           2016-02-09 20:03:50
+```
+
+Удаление шаблона приложения из контейнера:
+```
+[root@virtuozzo ~]# vzpkg remove fifth tomcat
+Removed:
+ tomcat                 noarch    0:7.0.54-2.el7_1
+ tomcat-admin-webapps   noarch    0:7.0.54-2.el7_1
+ tomcat-webapps         noarch    0:7.0.54-2.el7_1
+ tomcat-lib             noarch    0:7.0.54-2.el7_1
+ tomcat-el-2.2-api      noarch    0:7.0.54-2.el7_1
+
+[root@virtuozzo ~]# vzpkg list fifth
+centos-7-x86_64                    2016-02-09 17:00:57
+centos-7-x86_64      jre           2016-02-09 20:03:50
 ```
 
 ## [⬆](#toc) <a name='containers'></a>Создание и настройка контейнеров
@@ -693,7 +754,6 @@ Debian GNU/Linux 8 \n \l
 Подробная информация о контейнере:
 ```
 [root@virtuozzo ~]# prlctl list -i fourth
-[root@localhost ~]# prlctl list -i first
 INFO
 ID: {22c418d7-948b-456e-9d84-d59ab5ead661}
 EnvID: 22c418d7-948b-456e-9d84-d59ab5ead661
@@ -1208,6 +1268,8 @@ The CT has been successfully started.
 * https://bugs.openvz.org/secure/Dashboard.jspa
 
 ## [⬆](#toc) <a name='todo'></a>TODO
+* Создание шаблона приложения для автоматического создания контейнера
+* Создание шаблона гостевой ОС на основе vztt/vzmktmpl
 * Управление виртуальными машинами
 * Проброс устройств (fuse/tun/tap/nfs/pptp)
 * Онлайн-миграции
