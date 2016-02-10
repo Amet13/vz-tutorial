@@ -33,10 +33,13 @@
   - [Память](#memory)
   - [Мониторинг ресурсов](#monitoring)
 8. [Миграция контейнеров](#migration)
-9. [Планы Virtuozzo](#roadmap)
-10. [Ссылки](#links)
-11. [TODO](#todo)
-12. [Лицензия](#license)
+9. [Проброс устройств в контейнеры](#forward-dev)
+  - [TUN/TAP](#tun-tap)
+  - [FUSE](#fuse)
+10. [Планы Virtuozzo](#roadmap)
+11. [Ссылки](#links)
+12. [TODO](#todo)
+13. [Лицензия](#license)
 
 ## [⬆](#toc) <a name='intro'></a>Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированное от аппаратной реализации, и обеспечивающее изоляцию вычислительных процессов.
@@ -389,7 +392,7 @@ centos-7-x86_64      postgresql
 centos-7-x86_64      tomcat        
 ```
 
-Пример установки шаблона приложений tomcat и jre:
+Пример установки шаблона приложений `tomcat` и `jre`:
 ```
 [root@virtuozzo ~]# vzpkg list fifth
 centos-7-x86_64                    2016-02-09 17:00:57
@@ -1251,6 +1254,80 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 [root@vz-dest ~]# prlctl start third
 Starting the CT...
 The CT has been successfully started.
+```
+
+## [⬆](#toc) <a name='forward-dev'></a>Проброс устройств в контейнеры
+### <a name='tun-tap'></a>TUN/TAP
+Технология VPN позволяет устанавливать безопасное сетевое соединение между компьютерами.
+Для того чтобы VPN работала в контейнере, необходимо разрешить использование TUN/TAP устройств для контейнера.
+
+*Схема работы Virtual Private Network*
+![VPN](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/vpn.png)
+
+По умолчанию модуль TUN уже загружен в ядро, проверить это можно командой `lsmod`:
+```
+[root@virtuozzo ~]# lsmod | grep tun
+tun                    27183  1
+```
+
+Если все-таки модуль отключен, то включить его можно командой `modprobe`:
+```
+[root@virtuozzo ~]# modprobe tun
+```
+
+Проброс модуля TUN в контейнер:
+```
+[root@virtuozzo ~]# vzctl set third --devnodes net/tun:rw --save
+Setting devices
+Create /etc/tmpfiles.d/device-tun.conf
+[root@virtuozzo ~]# prlctl exec third ls -l /dev/net/tun
+crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
+```
+
+На этом настройка устройства TUN окончена.
+Далее необходимо установить ПО для работы с VPN.
+Например одну из программ:
+* tinc (http://tinc-vpn.org)
+* OpenVPN (http://openvpn.net)
+* VTun (http://vtun.sourceforge.net)
+
+Для установки сервера OpenVPN, можно обратиться к официальной документации, расположенной по адресу: http://openvpn.net/index.php/open-source/documentation.html
+
+### <a name='fuse'></a>FUSE
+FUSE (Filesystem in Userspace) — модуль Linux-ядра, позволяющий создавать виртуальные файловые системы.
+FUSE может пригодиться, например при монтировании Яндекс.Диска или других виртуальных файловых систем.
+Для того, чтобы для контейнеров был доступен FUSE, его необходимо включить на хост-ноде:
+```
+[root@virtuozzo ~]# modprobe fuse
+[root@virtuozzo ~]# lsmod | grep fuse
+fuse                  106371  0
+```
+
+Также необходимо добавить модуль в автозагрузку, чтобы он подгружался автоматически при рестарте хост-ноды:
+```
+[root@virtuozzo ~]# echo fuse >> /etc/modules-load.d/vz.conf
+```
+
+Включение FUSE для контейнера:
+```
+[root@virtuozzo ~]# vzctl set third --devnodes fuse:rw --save
+Setting devices
+Create /etc/tmpfiles.d/device-fuse.conf
+[root@virtuozzo ~]# prlctl exec third ls -l /dev/fuse
+crw------- 1 root root 10, 229 Feb 10 13:42 /dev/fuse
+```
+
+Пример подключения Яндекс.Диска в контейнере:
+```
+[root@virtuozzo ~]# prlctl exec third yum install fuse davfs2
+
+[root@virtuozzo ~]# prlctl exec third mount -t davfs https://webdav.yandex.ru /mnt/
+Please enter the username to authenticate with server
+https://webdav.yandex.ru or hit enter for none.
+  Username: login
+Please enter the password to authenticate user Amet1395 with server
+https://webdav.yandex.ru or hit enter for none.
+  Password:  pass
 ```
 
 ## [⬆](#toc) <a name='roadmap'></a>Планы Virtuozzo
