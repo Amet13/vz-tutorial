@@ -1262,7 +1262,7 @@ The CT has been successfully started.
 Для того чтобы VPN работала в контейнере, необходимо разрешить использование TUN/TAP устройств для контейнера.
 
 *Схема работы Virtual Private Network*
-![VPN](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz-install/vpn.png)
+![VPN](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vpn.png)
 
 По умолчанию модуль TUN уже загружен в ядро, проверить это можно командой `lsmod`:
 ```
@@ -1284,7 +1284,7 @@ Create /etc/tmpfiles.d/device-tun.conf
 crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 ```
 
-На этом настройка устройства TUN окончена.
+На этом настройка TUN окончена.
 Далее необходимо установить ПО для работы с VPN.
 Например одну из программ:
 * tinc (http://tinc-vpn.org)
@@ -1296,6 +1296,7 @@ crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 ### <a name='fuse'></a>FUSE
 FUSE (Filesystem in Userspace) — модуль Linux-ядра, позволяющий создавать виртуальные файловые системы.
 FUSE может пригодиться, например при монтировании Яндекс.Диска или других виртуальных файловых систем.
+
 Для того, чтобы для контейнеров был доступен FUSE, его необходимо включить на хост-ноде:
 ```
 [root@virtuozzo ~]# modprobe fuse
@@ -1320,12 +1321,11 @@ crw------- 1 root root 10, 229 Feb 10 13:42 /dev/fuse
 Пример подключения Яндекс.Диска в контейнере:
 ```
 [root@virtuozzo ~]# prlctl exec third yum install fuse davfs2
-
 [root@virtuozzo ~]# prlctl exec third mount -t davfs https://webdav.yandex.ru /mnt/
 Please enter the username to authenticate with server
 https://webdav.yandex.ru or hit enter for none.
-  Username: login
-Please enter the password to authenticate user Amet1395 with server
+  Username: username
+Please enter the password to authenticate user username with server
 https://webdav.yandex.ru or hit enter for none.
   Password:  pass
 ```
