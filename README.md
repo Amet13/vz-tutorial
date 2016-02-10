@@ -1287,11 +1287,11 @@ crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 На этом настройка TUN окончена.
 Далее необходимо установить ПО для работы с VPN.
 Например одну из программ:
-* tinc (http://tinc-vpn.org)
-* OpenVPN (http://openvpn.net)
-* VTun (http://vtun.sourceforge.net)
+* [OpenVPN](http://openvpn.net)
+* [tinc](http://tinc-vpn.org)
+* [VTun](http://vtun.sourceforge.net)
 
-Для установки сервера OpenVPN, можно обратиться к официальной документации, расположенной по адресу: http://openvpn.net/index.php/open-source/documentation.html
+Пример установки OpenVPN-сервера в CentOS 7: http://blog.amet13.name/2015/11/openvpn-centos-7.html
 
 ### <a name='fuse'></a>FUSE
 FUSE (Filesystem in Userspace) — модуль Linux-ядра, позволяющий создавать виртуальные файловые системы.
@@ -1345,13 +1345,14 @@ https://webdav.yandex.ru or hit enter for none.
 * https://bugs.openvz.org/secure/Dashboard.jspa
 
 ## [⬆](#toc) <a name='todo'></a>TODO
-* Создание шаблона приложения для автоматического создания контейнера
+* Создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
 * Создание шаблона гостевой ОС на основе vztt/vzmktmpl
 * Управление виртуальными машинами
-* Проброс устройств (fuse/tun/tap/nfs/pptp)
-* Онлайн-миграции
+* Проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
+* Онлайн-миграции (все еще недоступно в текущей версии)
 * Управление сетью в Virtuozzo (veth/vlan/шейпинг)
 * Снапшоты и клонирование шаблонов
+* Бекапы
 
 ## [⬆](#toc) <a name='license'></a>Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
