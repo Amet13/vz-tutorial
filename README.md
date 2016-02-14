@@ -1514,9 +1514,9 @@ Authentication tokens updated successfully.
 ```
 
 В гостевой Windows установка дополнений еще проще.
-1. Устанавливаем в Windows драйвер, который находится в `<CD_root>/vioserial/<Win_version>/amd64/vioser.inf`
-2. Запускаем `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
-3. Проверяем, что сервис `QEMU-GA` (`qemu-ga.exe`) работает
+* устанавливаем в Windows драйвер, который находится в `<CD_root>/vioserial/<Win_version>/amd64/vioser.inf`
+* запускаем `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
+* проверяем, что сервис `qemu-ga.exe` работает
 
 
 ## [⬆](#toc) <a name='roadmap'></a>Планы Virtuozzo
