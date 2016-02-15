@@ -42,6 +42,7 @@
   - [Дополнения гостевой ОС](#guest-tools)
   - [Приостановка виртуальных машин](#pause-vm)
   - [Шаблоны конфигураций](#templates-vm)
+  - [Добавление и удаление устройств в ВМ](#devices-vm)
 11. [Рекомендации системному администратору](#recommendations)
 12. [Планы Virtuozzo](#roadmap)
 13. [Ссылки](#links)
@@ -1394,7 +1395,7 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 [root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
 [root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd FE80:0:0:0:20C:29FF:FE01:FB07
 [root@virtuozzo ~]# prlctl set vm1 --nameserver 192.168.0.1,192.168.0.2
-[root@virtuozzo ~]# prlctl set vm1 --onboot yes
+[root@virtuozzo ~]# prlctl set vm1 --autostart on
 [root@virtuozzo ~]# prlctl set vm1 --memsize 1024
 [root@virtuozzo ~]# prlctl set vm1 --videosize 64
 [root@virtuozzo ~]# prlctl set vm1 --cpus 2
@@ -1448,6 +1449,8 @@ Hardware:
 [root@virtuozzo ~]# prlctl set vm1 --vnc-mode manual --vnc-port 5901 --vnc-passwd Oiwaiqud
 Configure VNC: Remote display: mode=manual port=5901
 ```
+
+Также можно предоставить беспарольный доступ к VNC с помощью параметра `--vnc-nopasswd` вместо `--vnc-passwd`.
 
 Для каждой виртуальной машины должен быть установлен уникальный порт для VNC.
 По аналогии с виртуальными машинами, VNC доступен и для контейнеров.
@@ -1529,18 +1532,23 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * запуск `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
 * проверка работоспособности сервиса `qemu-ga.exe`
 
+Автоматическое обновление дополнений гостевой ОС в ВМ:
+```
+[root@virtuozzo ~]# prlctl set vm1 --tools-autoupdate on
+```
+
 ### <a name='pause-vm'></a>Приостановка виртуальных машин
 Команды управления контейнерами с помощью `prlctl` аналогично используются и для ВМ:
-* start
-* exec
-* enter
-* status
-* stop
-* restart
-* suspend
-* resume
-* delete
-* clone
+* `start`
+* `exec`
+* `enter`
+* `status`
+* `stop`
+* `restart`
+* `suspend`
+* `resume`
+* `delete`
+* `clone`
 
 Вдобавок к этим командам существует возможность приостанавливать ВМ:
 ```
@@ -1590,6 +1598,98 @@ Hardware:
   net0 (+) dev='vme427f38a5' network='Bridged' mac=001C427F38A5 card=virtio
 ```
 
+### <a name='devices-vm'></a>Добавление и удаление устройств в ВМ
+Для каждой виртуальной машины доступно максимум 4 IDE или 8 SCSI (HDD, CD/DVD-ROM) устройств, 16 сетевых адаптеров, 4 последовательных порта и по одному USB-контроллеру и FDD.
+
+Добавление дополнительного HDD для виртуальной машины с Linux:
+```
+[root@virtuozzo ~]# prlctl list vm1 -i | grep Hardware -A9
+Hardware:
+  cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-1
+  memory 1024Mb
+  video 64Mb 3d acceleration=highest vertical sync=yes
+  memory_guarantee auto
+  hdd0 (+) scsi:0 image='/vz/vmprivate/vm1.pvm/harddisk.hdd' type='expanded' 8192Mb subtype=virtio-scsi
+  cdrom0 (+) ide:0 image='/vz/vmprivate/vm1.pvm/cloud-config.iso'
+  cdrom1 (+) scsi:1 image='/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso' subtype=virtio-scsi
+  usb (+)
+  net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
+[root@virtuozzo ~]# prlctl set vm1 --device-add hdd --size 2048 --iface scsi
+Creating hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
+Created hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
+[root@virtuozzo ~]# prlctl list vm1 -i | grep hdd
+Boot order: hdd0 cdrom1 hdd1
+  hdd0 (+) scsi:0 image='/vz/vmprivate/vm1.pvm/harddisk.hdd' type='expanded' 8192Mb subtype=virtio-scsi
+  hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
+[root@virtuozzo ~]# prlctl enter vm1
+[root@vm1 /]# lsblk | grep sd
+sda               8:0    0    8G  0 disk
+├─sda1            8:1    0  500M  0 part /boot
+└─sda2            8:2    0  7.5G  0 part
+sdb               8:16   0    2G  0 disk
+[root@vm1 /]# fdisk /dev/sdb
+Command (m for help): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1): <Enter>
+First sector (2048-4194303, default 2048): <Enter>
+Last sector, +sectors or +size{K,M,G} (2048-4194303, default 4194303): <Enter>
+Command (m for help): w
+[root@vm1 /]# mkfs -t ext4 /dev/sdb1
+...
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (8192 blocks): done
+Writing superblocks and filesystem accounting information: done
+[root@vm1 /]# mount /dev/sdb1 /mnt/
+[root@vm1 /]# tail -1 /etc/mtab >> /etc/fstab
+```
+
+С помощью параметра `--device-disconnect` можно отключить устройство от ВМ:
+```
+[root@virtuozzo ~]# prlctl set vm1 --device-disconnect cdrom1
+Disconnect device: cdrom1
+The device successfully disconnected
+[root@virtuozzo ~]# prlctl list vm1 -i | grep cdrom1
+Boot order: hdd0 cdrom1 hdd1
+  cdrom1 (+) scsi:1 image='/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso' state=disconnected subtype=virtio-scsi
+```
+
+Включить устройство можно воспользовавшись параметром `--device-connect`.
+
+Чтобы полностью удалить устройство, нужно использовать параметр `--device-del`:
+```
+[root@virtuozzo ~]# prlctl set vm1 --device-del usb
+Remove the usb device.
+[root@virtuozzo ~]# prlctl set vm1 --device-del cdrom1
+Remove the cdrom1 device.
+[root@virtuozzo ~]# prlctl list vm1 -i | grep -E "cdrom1|usb"
+```
+
+При удалении HDD из контейнера можно сохранить сам виртуальный диск, для этого используется параметр `--detach-only`, по умолчанию диск удаляется, что является умолчанием параметра `--destroy-image`.
+
+Изменение приоритета загрузки устройств:
+```
+[root@virtuozzo ~]# prlctl list vm1 -i | grep 'Boot order'
+Boot order: hdd0 hdd1
+[root@virtuozzo ~]# prlctl set vm1 --device-bootorder "hdd1 hdd0"
+[root@virtuozzo ~]# prlctl list vm1 -i | grep 'Boot order'
+Boot order: hdd1 hdd0
+```
+
+Пример добавления дополнительного сетевого устройства:
+```
+[root@virtuozzo ~]# prlctl set vm1 --device-add net --network Bridged  --mac auto --ipadd 192.168.0.181 --gw 192.168.122.1 --nameserver 192.168.0.1 --adapter-type virtio
+Enable automatic reconfiguration for this network adapter.
+Creating net1 (+) dev='' ifname='eth1' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
+Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
+[root@virtuozzo ~]# prlctl list vm1 -i | grep -i net
+  net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
+  net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
+```
+
 ## [⬆](#toc) <a name='recommendations'></a>Рекомендации системному администратору
 * если работа хост-ноды замедлилась, для анализа проблемы можно воспользоваться утилитами `ps`, `vzps`, `top`, `vztop` `dmesg`, `atop`
 * для обнаружения сетевых проблем можно воспользоваться утилитами `ping`, `traceroute`, `nmap`, `mtr`, `tcpdump`, `nc`, `iftop`
@@ -1633,12 +1733,12 @@ Hardware:
 ## [⬆](#toc) <a name='todo'></a>TODO
 * Создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
 * Создание шаблона гостевой ОС на основе vztt/vzmktmpl
-* Шаблоны для виртуальных машин, добавление устройств, команды управления, CPU hotplug, оптимизация памяти с KSM
+* CPU/Memory hotplug, оптимизация памяти с KSM
 * Проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
 * Онлайн-миграции (все еще недоступно в текущей версии)
 * Управление сетью в Virtuozzo (veth/vlan/шейпинг)
 * Снапшоты и клонирование шаблонов
-* Бекапы
+* Бэкапы
 
 ## [⬆](#toc) <a name='license'></a>Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
