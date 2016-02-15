@@ -1292,8 +1292,6 @@ crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 * [tinc](http://tinc-vpn.org)
 * [VTun](http://vtun.sourceforge.net)
 
-Пример установки OpenVPN-сервера в CentOS 7: http://blog.amet13.name/2015/11/openvpn-centos-7.html
-
 ### <a name='fuse'></a>FUSE
 FUSE (Filesystem in Userspace) — модуль Linux-ядра, позволяющий создавать виртуальные файловые системы.
 FUSE может пригодиться, например при монтировании Яндекс.Диска или других виртуальных файловых систем.
@@ -1333,11 +1331,12 @@ https://webdav.yandex.ru or hit enter for none.
 
 ## [⬆](#toc) <a name='vmachines'></a>Работа с виртуальными машинами
 Помимо создания контейнеров, Virtuozzo 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
+Утилита `prlctl` имеет возможно создавать и управлять виртуальными машинами, помимо этого также доступно управление ВМ с помощью libvirt.
 
 ### <a name='create-vm'></a>Создание и запуск ВМ
 Создание виртуальной машины практически ничем не отличается от создания контейнера:
 ```
-[root@virtuozzo ~]# prlctl create vm1 --distribution rhel --vmtype vm
+[root@virtuozzo ~]# prlctl create vm1 --distribution rhel7 --vmtype vm
 Creating the virtual machine...
 Generate the VM configuration for rhel.
 The VM has been successfully created.
@@ -1346,7 +1345,7 @@ The VM has been successfully created.
 Параметр `--distribution` указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
 Список всех официально поддерживаемых ОС:
 ```
-[root@virtuozzo ~]# prlctl create ve_name -d list
+[root@virtuozzo ~]# prlctl create vm1 -d list
 The following values are allowed:
 win-2000        	win-xp          	win-2003        	win-vista       
 win-2008        	win-7           	win-8           	win-2012        
@@ -1381,6 +1380,8 @@ config.pvs  config.pvs.backup  harddisk.hdd
 ```
 [root@virtuozzo ~]# prlctl list -a
 UUID                                    STATUS       IP_ADDR         T  NAME
+{6fe60288-fe50-49fe-a68d-7a8330837358}  stopped      -               CT ct1
+{2cdb07fd-a68a-4279-81c1-3d269460c2f7}  stopped      -               CT ct2
 {485372f0-2ae3-4bfe-aa55-e556c37fea9f}  stopped      -               VM vm1
 ```
 
@@ -1410,14 +1411,14 @@ CentOS-7-x86_64-Minimal-1503-01.iso
 9200.16384.WIN8_RTM.120725-1247_X64FRE_SERVER_EVAL_RU-RU-HRM_SSS_X64FREE_RU-RU_DV5.ISO
 ```
 
-Ознакомительные образы Windows Server можно найти по ссылке: https://www.microsoft.com/ru-ru/evalcenter/evaluate-windows-server-2012
+Ознакомительные образы Windows Server можно найти по адресу: https://www.microsoft.com/ru-ru/evalcenter/evaluate-windows-server-2012
 
-Установим для виртуальной машины ОС с образа `CentOS-7-x86_64-Minimal-1503-01.iso`:
+Установка ВМ с образа `CentOS-7-x86_64-Minimal-1503-01.iso`:
 ```
 [root@virtuozzo ~]# prlctl set vm1 --device-set cdrom1 --image "/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso" --iface scsi --position 1
 ```
 
-Изменим размер диска по умолчанию до 8G:
+Изменение размера диска до 8G:
 ```
 [root@virtuozzo ~]# prl_disk_tool resize --hdd /vz/vmprivate/vm1.pvm/harddisk.hdd --size 8G
 ```
@@ -1437,7 +1438,7 @@ Hardware:
   net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
 ```
 
-Для установки ОС подключим для виртуальной машины VNC:
+Подключение VNC для ВМ:
 ```
 [root@virtuozzo ~]# prlctl set vm1 --vnc-mode manual --vnc-port 5901 --vnc-passwd Oiwaiqud
 Configure VNC: Remote display: mode=manual port=5901
@@ -1466,17 +1467,17 @@ Password: Oiwaiqud
 По окончании установки необходимо перезагрузиться.
 
 *Установленная гостевая ОС*
-![Свежеустановленная ОС](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/installed-os.png)
+![Установленная гостевая ОС](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/installed-os.png)
 
 После установки ОС, можно соединиться к ней по SSH:
 ```
-user@localhost ~ $ ssh root@192.168.122.180
-root@192.168.122.180's password: eihaixahghath7A
+user@localhost ~ $ ssh root@192.168.0.180
+root@192.168.0.180's password: eihaixahghath7A
 [root@vm1 ~]#
 ```
 
 ### <a name='guest-tools'></a>Дополнения гостевой ОС
-Virtuozzo поддеживает Virtuozzo Guest Tools (дополнения гостевой ОС). Дополнения гостевой ОС позволяют выполнять некоторые операции в ВМ такие как:
+Virtuozzo поддеживает Virtuozzo Guest Tools (дополнения гостевой ОС), которые позволяют выполнять некоторые операции в ВМ такие как:
 * запуск команд в ВМ с помощью `prlctl exec`
 * установка паролей для пользователей с помощью `prlctl set --userpasswd`
 * управление сетевыми настройками в ВМ
@@ -1490,6 +1491,8 @@ The Parallels tools have been successfully installed.
 
 Далее необходимо войти в ВМ, например по SSH и запустить скрипт установки дополнений:
 ```
+[root@virtuozzo ~]# ssh root@192.168.0.180
+root@192.168.0.180's password: eihaixahghath7A
 [root@vm1 ~]# mount /dev/cdrom /mnt/
 mount: /dev/sr0 is write-protected, mounting read-only
 [root@vm1 ~]# bash /mnt/install
@@ -1505,19 +1508,20 @@ Updating / installing...
 Done!
 ```
 
-Проверяем корректность установки дополнений с хост-ноды:
+Проверка корректности установки дополнений с хост-ноды:
 ```
 [root@virtuozzo ~]# prlctl exec vm1 uname -a
 Linux vm1.tld 3.10.0-229.el7.x86_64 #1 SMP Fri Mar 6 11:36:42 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
 [root@virtuozzo ~]# prlctl set vm1 --userpasswd testuser:iel9cophoo2Aisa
 Authentication tokens updated successfully.
+[root@virtuozzo ~]# prlctl exec vm1 id testuser
+uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 ```
 
-В гостевой Windows установка дополнений еще проще.
-* устанавливаем в Windows драйвер, который находится в `<CD_root>/vioserial/<Win_version>/amd64/vioser.inf`
-* запускаем `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
-* проверяем, что сервис `qemu-ga.exe` работает
-
+В гостевой Windows установка дополнений сводится к трем пунктам:
+* установка драйвера, который находится в `<CD_root>/vioserial/<Win_version>/amd64/vioser.inf`
+* запуск `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
+* проверка работоспособности сервиса `qemu-ga.exe`
 
 ## [⬆](#toc) <a name='roadmap'></a>Планы Virtuozzo
 * 2016 — Virtuozzo 7 Technical Preview 2 — Containers.
