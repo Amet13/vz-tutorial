@@ -40,7 +40,9 @@
   - [Создание и запуск ВМ](#create-vm)
   - [VNC](#vnc)
   - [Дополнения гостевой ОС](#guest-tools)
-  - [Управление виртуальными машинами](#manage-vm)
+  - [Приостановка виртуальных машин](#pause-vm)
+  - [Шаблоны конфигураций](#templates-vm)
+  ### <a name='templates-vm'></a>Шаблоны конфигураций
 11. [Планы Virtuozzo](#roadmap)
 12. [Ссылки](#links)
 13. [TODO](#todo)
@@ -1527,7 +1529,7 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * запуск `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
 * проверка работоспособности сервиса `qemu-ga.exe`
 
-### <a name='manage-vm'></a>Управление виртуальными машинами
+### <a name='pause-vm'></a>Приостановка виртуальных машин
 Команды управления контейнерами с помощью `prlctl` аналогично используются и для ВМ:
 * start
 * exec
@@ -1550,6 +1552,42 @@ VM vm1 exist paused
 [root@virtuozzo ~]# prlctl start vm1
 Starting the VM...
 The VM has been successfully started.
+```
+
+### <a name='templates-vm'></a>Шаблоны конфигураций
+На основе уже имеющихся виртуальных машин можно создавать типовые конфигурации.
+
+Пример создания шаблона `config-1024MB-centos7`, основанный на ранее настроенной `vm1`:
+```
+[root@virtuozzo ~]# mkdir /etc/parallels/samples
+[root@virtuozzo ~]# cp /vz/vmprivate/vm1.pvm/config.pvs /etc/parallels/samples/config-1024MB-centos7.pvs
+[root@virtuozzo ~]# prlctl create vm3
+Creating the virtual machine...
+Generate the VM configuration for win-2008.
+The VM has been successfully created.
+[root@virtuozzo ~]# prlctl list vm3 -i | grep Hardware -A9
+Hardware:
+  cpu cpus=1 VT-x accl=high mode=32 ioprio=4 iolimit='0'
+  memory 512Mb
+  video 32Mb 3d acceleration=highest vertical sync=yes
+  memory_guarantee auto
+  fdd0 (+) image='/usr/share/virtuozzo/floppy_win2008.vfd'
+  hdd0 (+) scsi:0 image='/vz/vmprivate/vm3.pvm/harddisk.hdd' type='expanded' 65536Mb subtype=virtio-scsi
+  cdrom0 (+) ide:0 image=''
+  usb (+)
+  net0 (+) dev='vme427f38a5' network='Bridged' mac=001C427F38A5 card=virtio
+[root@virtuozzo ~]# prlctl set vm3 --applyconfig config-1024MB-centos7
+[root@virtuozzo ~]# prlctl list vm3 -i | grep Hardware -A9
+Hardware:
+  cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=4 iolimit='0' mask=0-1
+  memory 1024Mb
+  video 64Mb 3d acceleration=highest vertical sync=yes
+  memory_guarantee auto
+  fdd0 (+) image='/usr/share/virtuozzo/floppy_win2008.vfd'
+  hdd0 (+) scsi:0 image='/vz/vmprivate/vm3.pvm/harddisk.hdd' type='expanded' 8192Mb subtype=virtio-scsi
+  cdrom0 (+) ide:0 image=''
+  usb (+)
+  net0 (+) dev='vme427f38a5' network='Bridged' mac=001C427F38A5 card=virtio
 ```
 
 ## [⬆](#toc) <a name='roadmap'></a>Планы Virtuozzo
