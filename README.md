@@ -38,7 +38,9 @@
   - [FUSE](#fuse)
 10. [Работа с виртуальными машинами](#vmachines)
   - [Создание и запуск ВМ](#create-vm)
+  - [VNC](#vnc)
   - [Дополнения гостевой ОС](#guest-tools)
+  - [Управление виртуальными машинами](#manage-vm)
 11. [Планы Virtuozzo](#roadmap)
 12. [Ссылки](#links)
 13. [TODO](#todo)
@@ -1438,6 +1440,7 @@ Hardware:
   net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
 ```
 
+### <a name='vnc'></a>VNC
 Подключение VNC для ВМ:
 ```
 [root@virtuozzo ~]# prlctl set vm1 --vnc-mode manual --vnc-port 5901 --vnc-passwd Oiwaiqud
@@ -1445,6 +1448,7 @@ Configure VNC: Remote display: mode=manual port=5901
 ```
 
 Для каждой виртуальной машины должен быть установлен уникальный порт для VNC.
+По аналогии с виртуальными машинами, VNC доступен и для контейнеров.
 
 Запуск виртуальной машины:
 ```
@@ -1453,7 +1457,7 @@ Starting the VM...
 The VM has been successfully started.
 ```
 
-Теперь к ней можно подключиться по VNC:
+Теперь к ВМ можно подключиться по VNC:
 ```
 user@localhost ~ $ sudo apt-get install xvnc4viewer
 user@localhost ~ $ xvnc4viewer 192.168.0.150:5901
@@ -1522,6 +1526,31 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * установка драйвера, который находится в `<CD_root>/vioserial/<Win_version>/amd64/vioser.inf`
 * запуск `prl_nettool_<Win_arch>.msi` и `qemu-ga-<Win_arch>.msi`
 * проверка работоспособности сервиса `qemu-ga.exe`
+
+### <a name='manage-vm'></a>Управление виртуальными машинами
+Команды управления контейнерами с помощью `prlctl` аналогично используются и для ВМ:
+* start
+* exec
+* enter
+* status
+* stop
+* restart
+* suspend
+* resume
+* delete
+* clone
+
+Вдобавок к этим командам существует возможность приостанавливать ВМ:
+```
+[root@virtuozzo ~]# prlctl pause vm1
+Pause the VM...
+The VM has been successfully paused.
+[root@virtuozzo ~]# prlctl status vm1
+VM vm1 exist paused
+[root@virtuozzo ~]# prlctl start vm1
+Starting the VM...
+The VM has been successfully started.
+```
 
 ## [⬆](#toc) <a name='roadmap'></a>Планы Virtuozzo
 * 2016 — Virtuozzo 7 Technical Preview 2 — Containers.
