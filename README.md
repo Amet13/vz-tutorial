@@ -404,8 +404,8 @@ centos-7-x86_64      tomcat
 centos-7-x86_64                    2016-02-09 17:00:57
 [root@virtuozzo ~]# vzpkg install ct5 tomcat jre
 [root@virtuozzo ~]# prlctl exec ct5 systemctl start tomcat
-[root@virtuozzo ~]# prlctl exec ct5 systemctl status tomcat | grep Active
-   Active: active (running) since Tue 2016-02-09 19:56:43 MSK; 41s ago
+[root@virtuozzo ~]# prlctl exec ct5 systemctl is-active tomcat
+active
 ```
 
 После установки можно проверить список установленных шаблонов для контейнера:
@@ -487,8 +487,7 @@ The CT has been successfully configured.
 ### <a name='create-ct'></a>Создание контейнера
 В качестве параметра к идентификатору контейнера может использоваться любое имя:
 ```
-[root@virtuozzo ~]# CT=ct1
-[root@virtuozzo ~]# prlctl create $CT --ostemplate debian-8.0-x86_64 --vmtype=ct
+[root@virtuozzo ~]# prlctl create ct1 --ostemplate debian-8.0-x86_64 --vmtype=ct
 Creating the Virtuozzo Container...
 The Container has been successfully created.
 ```
@@ -550,7 +549,7 @@ eVjfsDkTE63s5Nw
 [root@virtuozzo ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
 [root@virtuozzo ~]# yum install pwgen
 [root@virtuozzo ~]# pwgen -s 15 1
-eVjfsDkTE63s5Nw
+esxrcH7dyoA46LY
 ```
 
 Пароль будет установлен в контейнер, в файл `/etc/shadow` и не будет сохранен в конфигурационный файл контейнера.
@@ -571,15 +570,17 @@ The CT has been successfully started.
 
 Проверяем сетевые интерфейсы внутри гостевой ОС:
 ```
-[root@virtuozzo ~]# prlctl exec ct1 ifconfig | grep "lo\|venet" -A 1
-lo        Link encap:Local Loopback
-          inet addr:127.0.0.1  Mask:255.0.0.0
---
-venet0    Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
-          inet addr:127.0.0.1  P-t-P:127.0.0.1  Bcast:0.0.0.0  Mask:255.255.255.255
---
-venet0:0  Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
-          inet addr:192.168.0.161  P-t-P:192.168.0.161  Bcast:192.168.0.255  Mask:255.255.255.0
+[root@virtuozzo ~]# prlctl exec ct1 ip addr show venet0
+2: venet0: <BROADCAST,POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default
+    link/void
+    inet 127.0.0.1/32 scope host venet0
+       valid_lft forever preferred_lft forever
+    inet 192.168.0.161/24 brd 192.168.0.255 scope global venet0:0
+       valid_lft forever preferred_lft forever
+    inet6 ::2/128 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fe01:fb08/64 scope link
+       valid_lft forever preferred_lft forever
 ```
 
 Также проверим корректность hostname:
@@ -667,7 +668,7 @@ Removing the CT...
 The CT has been successfully removed.
 ```
 
-Команда выполняет удаление частной области сервера и переименовывает файл конфигурации, дописывая к нему `.destroyed`.
+Команда выполняет удаление частной области сервера (`/vz/private/$UUID`) и переименовывает файл конфигурации (`/etc/vz/conf/$UUID.conf`), дописывая к нему `.destroyed`.
 
 ### <a name='reinstall-ct'></a>Переустановка контейнера
 Для переустановки ОС в контейнере, существует команда `vzctl reinstall`.
@@ -812,9 +813,9 @@ Search Domains: 192.168.0.1
 Существует также возможность просмотра дополнительной информации о контейнерах:
 ```
 [root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
-T  STATUS       NAME                             HOSTNAME                         DIST            IP_ADDR
-CT running      ct2                           ct2.virtuozzo.localhost       debian          192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
-CT running      ct1                            ct1.virtuozzo.localhost        debian          192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
+T  STATUS       NAME     HOSTNAME                    DIST         IP_ADDR
+CT running      ct2      ct2.virtuozzo.localhost     debian       192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
+CT running      ct1      ct1.virtuozzo.localhost     debian       192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
 ```
 
 Список всех доступных полей:
@@ -1092,42 +1093,42 @@ VM_OVERCOMMIT="2"
 С помощью утилиты `vznetstat` можно увидеть входящий и исходящий трафик (в байтах и пакетах) для всех контейнеров:
 ```
 [root@virtuozzo ~]# vznetstat
-UUID                                 Net.Class     Input(bytes) Input(pkts)        Output(bytes) Output(pkts)
-0                                    0                244486        3024              1567749        2491
-54bc2ba6-b040-469e-9fda-b0eabda822d4 0                     0           0                    0           0
-4730cba8-deed-4168-9f9e-34373e618026 0                     0           0                    0           0
-3d32522a-80af-4773-b9fa-ea4915dee4b3 0               2925512       49396             49398885       49254
+UUID                                 Net.Class   Input(bytes) Input(pkts)   Output(bytes) Output(pkts)
+0                                    0                 244486        3024         1567749         2491
+54bc2ba6-b040-469e-9fda-b0eabda822d4 0                      0           0               0            0
+4730cba8-deed-4168-9f9e-34373e618026 0                      0           0               0            0
+3d32522a-80af-4773-b9fa-ea4915dee4b3 0                2925512       49396        49398885        49254
 ```
 
 Для конкретного контейнера можно воспользоваться ключом `-v`:
 ```
 [root@virtuozzo ~]# vznetstat -v 3d32522a-80af-4773-b9fa-ea4915dee4b3
-UUID                                 Net.Class     Input(bytes) Input(pkts)        Output(bytes) Output(pkts)
-3d32522a-80af-4773-b9fa-ea4915dee4b3 0               2925512       49396             49398885       49254
+UUID                                 Net.Class     Input(bytes)  Input(pkts)  Output(bytes)  Output(pkts)
+3d32522a-80af-4773-b9fa-ea4915dee4b3         0          2925512       49396        49398885       49254
 ```
 
 Утилита `vzstat` позволяет узнать информацию по нагрузке на контейнер, занятым ресурсам и состоянии сети:
 ```
 [root@virtuozzo ~]# vzstat -p 3d32522a-80af-4773-b9fa-ea4915dee4b3 -t
-loadavg		0 0 0
-CTNum		3
-procs		289 1 288 0 0 0 0
-CPU		16 0 2 3 95
-sched latency	372 9
-Mem		989 360 0
-Mem latency	1 0
-  ZONE0 (DMA): size 15MB, act 4MB, inact 4MB, free 4MB (0/0/1)
-  ZONE1 (DMA32): size 1007MB, act 243MB, inact 274MB, free 355MB (43/54/64)
-  Mem lat (ms): A0 1, K0 0, U0 1, K1 0, U1 0
-  Slab pages: 62MB/62MB (ino 22MB, de 0MB, bh 1MB, pb 0MB)
-Swap		952 952 0.000 0.000
-Net stats	0.382 5949 5.542 5820
-if br0 stats	0.171 2975 2.771 2910
-if lo stats	0.000 0 0.000 0
-if virbr1-nic stats	0.000 0 0.000 0
-if enp0s3 stats	0.211 2975 2.771 2910
-if virbr1 stats	0.000 0 0.000 0
-Disks stats	0.000 0.000
+loadavg     0 0 0
+CTNum       3
+procs       289 1 288 0 0 0 0
+CPU         16 0 2 3 95
+sched latency   372 9
+Mem         989 360 0
+Mem latency 1 0
+  ZONE0 (DMA):      size 15MB, act 4MB, inact 4MB, free 4MB (0/0/1)
+  ZONE1 (DMA32):    size 1007MB, act 243MB, inact 274MB, free 355MB (43/54/64)
+  Mem lat (ms):     A0 1, K0 0, U0 1, K1 0, U1 0
+  Slab pages:       62MB/62MB (ino 22MB, de 0MB, bh 1MB, pb 0MB)
+Swap        952 952 0.000 0.000
+Net stats   0.382 5949 5.542 5820
+if br0 stats    0.171 2975 2.771 2910
+if lo stats     0.000 0 0.000 0
+if virbr1-nic stats 0.000 0 0.000 0
+if enp0s3 stats 0.211 2975 2.771 2910
+if virbr1 stats 0.000 0 0.000 0
+Disks stats     0.000 0.000
 
     CTID ST   %VM    %KM        PROC     CPU     SOCK FCNT MLAT IP
 ```
@@ -1141,12 +1142,12 @@ Tasks: 178 total,   1 running, 176 sleeping,   1 stopped,   0 zombie
 KiB Mem :  1013704 total,   382912 free,   138656 used,   492136 buff/cache
 KiB Swap:   975868 total,   975868 free,        0 used.   688028 avail Mem
 
-    PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-   5625 33        20   0  364432   6232   1284 S  26.2  0.6   0:03.20 apache2
+     PID     USER    PR  NI    VIRT    RES   SHR   S  %CPU  %MEM    TIME+   COMMAND
+    5625       33    20   0  364432   6232  1284   S  26.2   0.6  0:03.20   apache2
 ...
 [root@virtuozzo ~]# vzpid 5625
-Pid	VEID	Name
-5625	3d32522a-80af-4773-b9fa-ea4915dee4b3	apache2
+ Pid                                    VEID      Name
+5625    3d32522a-80af-4773-b9fa-ea4915dee4b3   apache2
 ```
 
 Утилита `vzps` аналогична утилите `ps`, она позволяет вывести список процессов и их состояние для конкретного контейнера:
