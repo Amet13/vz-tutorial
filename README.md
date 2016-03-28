@@ -1200,14 +1200,7 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
 ```
 
 ## [[⬆]](#toc) <a name='migration-ct'></a>Миграция контейнеров
-В текущей версии Virtuozzo пока недоступна возможность онлайн-миграции контейнеров без их отключения.
-
-Пример оффлайн миграции контейнера с хост-ноды `vz-source` на `vz-dest` (192.168.0.180).
-
-Устанавливаем на `vz-source` и `vz-dest` последние версии `vzmigrate` и `rsync`:
-```
-[root@vz-source ~]# yum install vzmigrate rsync
-```
+Пример онлайн миграции контейнера `ct3` с хост-ноды `vz-source` на `vz-dest` (192.168.0.180).
 
 Создаем и копируем SSH-ключ с `vz-source` на `vz-dest` для беспарольной аутентификации:
 ```
@@ -1215,41 +1208,17 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
 [root@vz-source ~]# ssh-copy-id root@192.168.0.180
 ```
 
-Останавливаем контейнер перед миграцией:
-```
-[root@vz-source ~]# prlctl stop ct3
-Stopping the CT...
-The CT has been successfully stopped.
-```
-
 Запускаем миграцию в `screen`:
 ```
 [root@vz-source ~]# screen -S migrate-dest
-[root@vz-source ~]# vzmigrate 192.168.0.180 ct3
-Connection to destination node (192.168.0.180) is successfully established
-Moving/copying CT 4730cba8-deed-4168-9f9e-34373e618026 -> CT 4730cba8-deed-4168-9f9e-34373e618026, [], [] ...
-locking 4730cba8-deed-4168-9f9e-34373e618026
-Checking bindmounts
-Check cluster ID
-Checking keep dir for private area copy
-Checking technologies
-Checking templates for CT
-Checking IP addresses on destination node
-Check target CT name: ct3
-Checking RATE parameters in config
-Checking ploop format 2
-copy CT private /vz/private/4730cba8-deed-4168-9f9e-34373e618026
-Successfully completed
+[root@vz-source ~]# prlctl migrate ct3 192.168.0.180
 ```
 
-Проверяем на `vz-dest` наличие только что смигрированного контейнера, если он смигрирован, то запускаем его:
+Проверяем на `vz-dest` наличие смигрированного контейнера:
 ```
 [root@vz-dest ~]# prlctl list ct3
 UUID                                    STATUS       IP_ADDR         T  NAME
-{4730cba8-deed-4168-9f9e-34373e618026}  stopped      192.168.0.163   CT ct3
-[root@vz-dest ~]# prlctl start ct3
-Starting the CT...
-The CT has been successfully started.
+{4730cba8-deed-4168-9f9e-34373e618026}  running      192.168.0.163   CT ct3
 ```
 
 ## [[⬆]](#toc) <a name='forward-dev-ct'></a>Проброс устройств в контейнеры
@@ -1327,6 +1296,8 @@ https://webdav.yandex.ru or hit enter for none.
 ## [[⬆]](#toc) <a name='vm'></a>Работа с виртуальными машинами
 Помимо создания контейнеров, Virtuozzo 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
 Утилита `prlctl` имеет возможно создавать и управлять виртуальными машинами, помимо этого также доступно управление ВМ с помощью `libvirt`.
+
+Для виртуальных машин доступна онлайн-миграция, по аналогии с контейнерами.
 
 ### <a name='create-vm'></a>Создание и запуск ВМ
 Создание виртуальной машины практически ничем не отличается от создания контейнера:
