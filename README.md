@@ -1687,7 +1687,6 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 * Создание шаблона гостевой ОС на основе vztt/vzmktmpl
 * CPU/Memory hotplug, оптимизация памяти с KSM
 * Проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
-* Онлайн-миграции (все еще недоступно в текущей версии)
 * Управление сетью в Virtuozzo (veth/vlan/шейпинг)
 * Снапшоты и клонирование шаблонов
 * Бэкапы
