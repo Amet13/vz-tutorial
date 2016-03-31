@@ -610,6 +610,21 @@ logout
 [root@virtuozzo ~]#
 ```
 
+Переход в консоль контейнера:
+```
+[root@virtuozzo ~]# prlctl console ct2
+Attached to CT 9d921e42-1087-45e6-bea0-3d706b2d1862 tty2 (type ESC . to detach)
+
+CentOS Linux 7 (Core)
+Kernel 3.10.0-327.3.1.vz7.10.11 on an x86_64
+
+ct2 login: root
+Password:
+[root@ct2 ~]#
+```
+
+Для выхода из консоли необходимо использовать комбинацию клавиш `ESC` + `.`
+
 ## [[⬆]](#toc) <a name='management-ct'></a>Управление контейнерами
 ### <a name='status-ct'></a>Управление состоянием контейнера
 Статус контейнера:
@@ -669,6 +684,37 @@ The CT has been successfully removed.
 ```
 
 Команда выполняет удаление частной области сервера (`/vz/private/$UUID`) и переименовывает файл конфигурации (`/etc/vz/conf/$UUID.conf`), дописывая к его имени окончание `.destroyed`.
+
+Для того чтобы смонтировать содержимое контейнера без его запуска существует опция `mount`, для размонтирования — `umount`.
+Это может пригодиться например для того, чтобы поправить конфигурационные файлы контейнера с хост-ноды, если контейнер не стартует:
+```
+[root@virtuozzo ~]# prlctl list ct6
+UUID                                    STATUS       IP_ADDR         T  NAME
+{8de0101f-c166-42ce-ad53-a7900b223d46}  stopped      192.168.0.166   CT ct6
+[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@virtuozzo ~]# prlctl mount ct6
+Mounting the CT...
+The CT has been successfully mounted.
+[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+bin  boot  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+[root@virtuozzo ~]# prlctl status ct6
+CT wordpress-162 exist mounted
+[root@virtuozzo ~]# prlctl umount ct6
+Unmounting the CT...
+The CT has been successfully unmounted.
+[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@virtuozzo ~]#
+```
+
+Переместить частную область контейнера в другую область можно командой `move`:
+```
+[root@virtuozzo ~]# mkdir /home/private
+[root@virtuozzo ~]# prlctl move ct6 --dst /home/private
+Move the ct6 CT to /home/private...
+The CT has been successfully moved.
+[root@virtuozzo ~]# ls /home/private/8de0101f-c166-42ce-ad53-a7900b223d46/
+dump/       fs/         .lck        .owner      root.hdd/   scripts/    templates/  .uptime     ve.conf     .ve.layout  .ve.xml
+```
 
 ### <a name='reinstall-ct'></a>Переустановка контейнера
 Для переустановки ОС в контейнере, существует команда `vzctl reinstall`.
@@ -1483,6 +1529,7 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * `start`
 * `exec`
 * `enter`
+* `console`
 * `status`
 * `stop`
 * `restart`
@@ -1490,6 +1537,9 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * `resume`
 * `delete`
 * `clone`
+* `mount`
+* `umount`
+* `move`
 
 Вдобавок к этим командам существует возможность приостанавливать ВМ:
 ```
@@ -1671,7 +1721,6 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 * в случае обнаружения проблем, можно обратиться к документации проектов OpenVZ и Virtuozzo, а также задать вопросы на тематических форумах
 
 ## [[⬆]](#toc) <a name='roadmap'></a>Планы Virtuozzo
-* 2016 — Virtuozzo 7 Technical Preview 2 — Virtual machines
 * 2016 — Virtuozzo RC
 * 2016 — Virtuozzo RTM
 
