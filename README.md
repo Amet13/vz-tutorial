@@ -32,17 +32,17 @@
   - [Операции ввода/вывода](#io)
   - [Память](#memory)
   - [Мониторинг ресурсов](#monitoring)
-8. [Миграция контейнеров](#migration-ct)
-9. [Проброс устройств в контейнеры](#forward-dev-ct)
+8. [Проброс устройств в контейнеры](#forward-dev-ct)
   - [TUN/TAP](#tun-tap)
   - [FUSE](#fuse)
-10. [Работа с виртуальными машинами](#vm)
+9. [Работа с виртуальными машинами](#vm)
   - [Создание и запуск ВМ](#create-vm)
   - [VNC](#vnc)
   - [Дополнения гостевой ОС](#guest-tools)
   - [Приостановка виртуальных машин](#pause-vm)
   - [Шаблоны конфигураций](#templates-vm)
   - [Добавление и удаление устройств в ВМ](#devices-vm)
+10. [Миграция контейнеров и виртуальных машин](#migration)
 11. [Рекомендации системному администратору](#recommendations)
 12. [Планы Virtuozzo](#roadmap)
 13. [Ссылки](#links)
@@ -1199,28 +1199,6 @@ KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
     3d32522a-80af-4773-b9fa-ea4915dee4b3    4082 105       20   0   38256   2336   1792 S   0.0  0.2   0:00.02 qmgr
 ```
 
-## [[⬆]](#toc) <a name='migration-ct'></a>Миграция контейнеров
-Пример онлайн миграции контейнера `ct3` с хост-ноды `vz-source` на `vz-dest` (192.168.0.180).
-
-Создаем и копируем SSH-ключ с `vz-source` на `vz-dest` для беспарольной аутентификации:
-```
-[root@vz-source ~]# cd /root && ssh-keygen
-[root@vz-source ~]# ssh-copy-id root@192.168.0.180
-```
-
-Запускаем миграцию в `screen`:
-```
-[root@vz-source ~]# screen -S migrate-dest
-[root@vz-source ~]# prlctl migrate ct3 192.168.0.180
-```
-
-Проверяем на `vz-dest` наличие смигрированного контейнера:
-```
-[root@vz-dest ~]# prlctl list ct3
-UUID                                    STATUS       IP_ADDR         T  NAME
-{4730cba8-deed-4168-9f9e-34373e618026}  running      192.168.0.163   CT ct3
-```
-
 ## [[⬆]](#toc) <a name='forward-dev-ct'></a>Проброс устройств в контейнеры
 ### <a name='tun-tap'></a>TUN/TAP
 Технология VPN позволяет устанавливать безопасное сетевое соединение между компьютерами.
@@ -1296,8 +1274,6 @@ https://webdav.yandex.ru or hit enter for none.
 ## [[⬆]](#toc) <a name='vm'></a>Работа с виртуальными машинами
 Помимо создания контейнеров, Virtuozzo 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
 Утилита `prlctl` имеет возможно создавать и управлять виртуальными машинами, помимо этого также доступно управление ВМ с помощью `libvirt`.
-
-Для виртуальных машин доступна онлайн-миграция, по аналогии с контейнерами.
 
 ### <a name='create-vm'></a>Создание и запуск ВМ
 Создание виртуальной машины практически ничем не отличается от создания контейнера:
@@ -1641,6 +1617,30 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 [root@virtuozzo ~]# prlctl list vm1 -i | grep -i net
   net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
   net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
+```
+
+## [[⬆]](#toc) <a name='migration'></a>Миграция контейнеров и виртуальных машин
+В Virtuozzo поддерживается "живая" миграция контейнеров и виртуальных машин с использованием CRIU и P.Haul.
+
+Пример миграции контейнера `ct3` с хост-ноды `vz-source` на `vz-dest` (192.168.0.180).
+
+Создаем и копируем SSH-ключ с `vz-source` на `vz-dest` для беспарольной аутентификации:
+```
+[root@vz-source ~]# ssh-keygen
+[root@vz-source ~]# ssh-copy-id root@192.168.0.180
+```
+
+Запускаем миграцию в `screen`:
+```
+[root@vz-source ~]# screen -S migrate-dest
+[root@vz-source ~]# prlctl migrate ct3 192.168.0.180
+```
+
+Проверка на `vz-dest` смигрированного контейнера:
+```
+[root@vz-dest ~]# prlctl list ct3
+UUID                                    STATUS       IP_ADDR         T  NAME
+{4730cba8-deed-4168-9f9e-34373e618026}  running      192.168.0.163   CT ct3
 ```
 
 ## [[⬆]](#toc) <a name='recommendations'></a>Рекомендации системному администратору
