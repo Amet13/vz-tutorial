@@ -25,7 +25,6 @@
   - [Переустановка контейнера](#reinstall-ct)
   - [Клонирование контейнера](#clone-ct)
   - [Запуск команд в контейнере с хост-ноды](#run-commands)
-  - [Расширенная информация о контейнерах](#extra-info)
 7. [Управление ресурсами контейнеров](#resources-ct)
   - [Дисковые квоты](#quota)
   - [Процессор](#cpu)
@@ -45,11 +44,12 @@
   - [Горячее подключение CPU и RAM](#hotplug-vm)
   - [Оптимизация виртуальных машин с помощью KSM](#ksm)
 10. [Миграция контейнеров и виртуальных машин](#migration)
-11. [Рекомендации системному администратору](#recommendations)
-12. [Планы Virtuozzo](#roadmap)
-13. [Ссылки](#links)
-14. [TODO](#todo)
-15. [Лицензия](#license)
+11. [Расширенная информация о контейнерах и ВМ](#extra-info)
+12. [Рекомендации системному администратору](#recommendations)
+13. [Планы Virtuozzo](#roadmap)
+14. [Ссылки](#links)
+15. [TODO](#todo)
+16. [Лицензия](#license)
 
 ## [[⬆]](#toc) <a name='intro'></a>Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированных от аппаратной реализации, и обеспечивающих изоляцию вычислительных процессов.
@@ -647,7 +647,7 @@ The CT has been successfully stopped.
 ```
 
 Иногда нужно выключить контейнер как можно быстрее, например если он был подвержен взлому или создает критическую нагрузку на хост-ноду.
-Для того чтобы срочно выключить контейнер, нужно использовать параметр `--kill`:
+Для того чтобы срочно выключить контейнер, нужно использовать ключ `--kill`:
 ```
 [root@virtuozzo ~]# prlctl stop ct1 --kill
 Stopping the CT...
@@ -663,7 +663,7 @@ The CT has been successfully restarted.
 
 Приостановка контейнера сохраняет текущее состояние контейнера в файл, позволяя восстановить контейнер в то же состояние, в котором он был приостановлен, это может быть полезно, к примеру если перезагружается хост-нода и нужно сохранить состояние процессов в контейнере.
 
-Команда `suspend` приостанавливает контейнера, а `resume` — восстанавливает:
+Параметр `suspend` приостанавливает контейнера, а `resume` — восстанавливает:
 ```
 [root@virtuozzo ~]# prlctl suspend ct1
 Suspending the CT...
@@ -675,7 +675,7 @@ Resuming the CT...
 The CT has been successfully resumed.
 ```
 
-Для удаления контейнера существует команда `delete` (перед удалением, контейнер нужно сначала остановить):
+Для удаления контейнера существует параметр `delete` (перед удалением, контейнер нужно сначала остановить):
 ```
 [root@virtuozzo ~]# prlctl stop ct1
 Stopping the CT...
@@ -708,7 +708,7 @@ The CT has been successfully unmounted.
 [root@virtuozzo ~]#
 ```
 
-Переместить частную область контейнера в другую область можно командой `move`:
+Переместить частную область контейнера в другую область можно с помощью параметра `move`:
 ```
 [root@virtuozzo ~]# mkdir /home/private
 [root@virtuozzo ~]# prlctl move ct6 --dst /home/private
@@ -735,7 +735,7 @@ The CT has been successfully started.
 ```
 
 По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера.
-Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать параметр `--skipbackup`:
+Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`:
 
 ### <a name='clone-ct'></a>Клонирование контейнера
 Virtuozzo позволяет клонировать контейнеры:
@@ -791,7 +791,7 @@ Debian GNU/Linux 8 \n \l
 ```
 
 Иногда бывает нужно выполнить команду на нескольких контейнерах.
-Для этого можно использовать команду:
+Для этого можно использовать конструкцию:
 ```
 [root@virtuozzo ~]# CMD="cat /etc/issue"
 [root@virtuozzo ~]# for i in `prlctl list -o name -H`; do echo "CT $i"; prlctl exec $i $CMD; done
@@ -800,91 +800,6 @@ Debian GNU/Linux 8 \n \l
 
 CT ct2
 Debian GNU/Linux 8 \n \l
-```
-
-### <a name='extra-info'></a>Расширенная информация о контейнерах
-Подробную информацию о контейнере можно получить командой `list` с параметром `-i`:
-```
-[root@virtuozzo ~]# prlctl list -i ct4
-INFO
-ID: {22c418d7-948b-456e-9d84-d59ab5ead661}
-EnvID: 22c418d7-948b-456e-9d84-d59ab5ead661
-Name: ct4
-Description:
-Type: CT
-State: running
-OS: centos7
-Template: no
-Uptime: 00:00:00 (since 2016-02-09 17:04:41)
-Home: /vz/private/22c418d7-948b-456e-9d84-d59ab5ead661
-Owner: root
-Effective owner: owner
-GuestTools: state=possibly_installed
-Autostart: on
-Autostop: suspend
-Autocompact: on
-Undo disks: off
-Boot order:
-EFI boot: off
-Allow select boot device: off
-External boot device:
-Remote display: mode=off address=0.0.0.0
-Remote display state: stopped
-Hardware:
-  cpu cpus=unlimited VT-x accl=high mode=32 cpuunits=1000 ioprio=4
-  memory 512Mb
-  video 0Mb 3d acceleration=highest vertical sync=yes
-  memory_guarantee auto
-  hdd0 (+) image='/vz/private/22c418d7-948b-456e-9d84-d59ab5ead661/root.hdd' type='expanded' 10240Mb mnt=/
-  venet0 (+) type='routed' ips='192.168.0.164/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB10/64 '
-Host Shared Folders: (-)
-Features:
-Encrypted: no
-Faster virtual machine: on
-Adaptive hypervisor: off
-Disabled Windows logo: on
-Auto compress virtual disks: on
-Nested virtualization: off
-PMU virtualization: off
-Offline management: (-)
-Hostname: ct4.virtuozzo.localhost
-DNS Servers: 192.168.0.1 192.168.0.2
-Search Domains: 192.168.0.1
-```
-
-Существует также возможность просмотра дополнительной информации о контейнерах:
-```
-[root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
-T  STATUS       NAME     HOSTNAME                    DIST         IP_ADDR
-CT running      ct2      ct2.virtuozzo.localhost     debian       192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
-CT running      ct1      ct1.virtuozzo.localhost     debian       192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
-```
-
-Список всех доступных полей:
-```
-[root@virtuozzo ~]# prlctl list -L
-uuid                 UUID
-envid                ENVID
-status               STATUS
-name                 NAME
-dist                 DIST
-owner                OWNER
-system-flags         SYSTEM_FLAGS
-description          DESCRIPTION
-numproc              NPROC
-ip                   IP_ADDR
-ip_configured        IP_ADDR
-hostname             HOSTNAME
-netif                NETIF
-mac                  MAC
-features             FEATURES
-location             LOCATION
-iolimit              IOLIMIT
-netdev               NETDEV
-type                 T
-ha_enable            HA_ENABLE
-ha_prio              HA_PRIO
--                    -
 ```
 
 ## [[⬆]](#toc) <a name='resources-ct'></a>Управление ресурсами контейнеров
@@ -1332,7 +1247,7 @@ Generate the VM configuration for rhel7.
 The VM has been successfully created.
 ```
 
-Параметр `--distribution` указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
+Ключ `--distribution` указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
 Список всех официально поддерживаемых ОС:
 ```
 [root@virtuozzo ~]# prlctl create vm1 -d list
@@ -1392,9 +1307,9 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 [root@virtuozzo ~]# prlctl set vm1 --iopslimit 0
 ```
 
-Параметр `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
+Ключ `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
 
-Параметр `--videosize` указывает размер выделяемой видеопамяти в MB для виртуальной машины.
+Ключ `--videosize` указывает размер выделяемой видеопамяти в MB для виртуальной машины.
 
 Параметры виртуальной машины установлены, ее можно запускать, однако для установки гостевой ОС необходим образ ОС.
 Для хранения образов ОС можно создать каталог и централизованно хранить все там:
@@ -1439,7 +1354,7 @@ Hardware:
 Configure VNC: Remote display: mode=manual port=5901
 ```
 
-Также можно предоставить беспарольный доступ к VNC с помощью параметра `--vnc-nopasswd` вместо `--vnc-passwd`.
+Также можно предоставить беспарольный доступ к VNC с помощью ключа `--vnc-nopasswd` вместо `--vnc-passwd`.
 
 Для каждой виртуальной машины должен быть установлен уникальный порт для VNC.
 По аналогии с виртуальными машинами, VNC доступен и для контейнеров.
@@ -1628,7 +1543,7 @@ Command (m for help): w
 [root@vm1 /]# tail -1 /etc/mtab >> /etc/fstab
 ```
 
-С помощью параметра `--device-disconnect` можно отключить устройство от ВМ:
+С помощью ключа `--device-disconnect` можно отключить устройство от ВМ:
 ```
 [root@virtuozzo ~]# prlctl set vm1 --device-disconnect cdrom1
 Disconnect device: cdrom1
@@ -1638,9 +1553,9 @@ Boot order: hdd0 cdrom1 hdd1
   cdrom1 (+) scsi:1 image='/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso' state=disconnected subtype=virtio-scsi
 ```
 
-Включить устройство можно воспользовавшись параметром `--device-connect`.
+Включить устройство можно воспользовавшись ключом `--device-connect`.
 
-Чтобы полностью удалить устройство, нужно использовать параметр `--device-del`:
+Чтобы полностью удалить устройство, нужно использовать ключ `--device-del`:
 ```
 [root@virtuozzo ~]# prlctl set vm1 --device-del usb
 Remove the usb device.
@@ -1649,7 +1564,7 @@ Remove the cdrom1 device.
 [root@virtuozzo ~]# prlctl list vm1 -i | grep "cdrom1\|usb"
 ```
 
-При удалении HDD из виртуальной машины можно сохранить сам виртуальный диск, для этого используется параметр `--detach-only`, по умолчанию диск удаляется, что является умолчанием параметра `--destroy-image`.
+При удалении HDD из виртуальной машины можно сохранить сам виртуальный диск, для этого используется ключ `--detach-only`, по умолчанию диск удаляется, что является умолчанием ключа `--destroy-image`.
 
 Изменение приоритета загрузки устройств:
 ```
@@ -1672,10 +1587,11 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 ```
 
 ### <a name='hotplug-vm'></a>Горячее подключение CPU и RAM
-Для виртуальных машин доступно горячее подключение (hotplug) ресурсов без перезагрузки самих виртуальных машин, к таким ресурсом относятся оперативная память и процессор.
+Для виртуальных машин доступно горячее подключение (hotplug) ресурсов без перезагрузки самих виртуальных машин.
+К таким ресурсам относятся оперативная память и процессор.
 По умолчанию для виртуальных машин горячее подключение отключено.
 
-Для добавления оперативной памяти "налету" необходимо установить параметр `--mem-hotplug on`:
+Для добавления оперативной памяти "налету" необходимо установить значение ключа `--mem-hotplug` в `on`:
 ```
 [root@virtuozzo ~]# prlctl list vm1 -i | grep "memory "
   memory 1024Mb
@@ -1683,7 +1599,7 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 set mem hotplug: 1
 ```
 
-После установки параметра нужно единожды перезагрузить виртуальную машину и затем изменять память "налету":
+После установки параметра нужно единожды перезагрузить виртуальную машину и затем изменять количество памяти:
 ```
 [root@virtuozzo ~]# prlctl restart vm1
 Restarting the VM...
@@ -1696,7 +1612,7 @@ Set the memsize parameter to 1536Mb.
 
 Для включения CPU hotplug, необходимо чтобы операционная система гостевой ВМ поддерживала данную функцию.
 На данный момент поддерживаются:
-* Дистрибутивы основанные на RHEL 5 и выше
+* дистрибутивы основанные на RHEL 5 и выше
 * Windows Server 2008 x64 и выше
 
 Включение CPU hotplug происходит по аналогии с MEM hotplug:
@@ -1720,7 +1636,7 @@ set cpu mask 0-2
   cpu cpus=3 VT-x hotplug accl=high mode=32 cpuunits=2000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-2
 ```
 
-Для отключения hotplug используется параметр `--mem-hotplug off` и `--cpu-hotplug off` соответственно.
+Для отключения hotplug используется значения ключей `--mem-hotplug off` и `--cpu-hotplug off` соответственно.
 
 ### <a name='ksm'></a>Оптимизация виртуальных машин с помощью KSM
 KSM (Kernel Same-Page Merging) — технология ядра Linux, которая позволяет ядру объединять одинаковые страницы памяти между различными процессами или виртуальными гостевыми системами в одну для совместного использования.
@@ -1769,6 +1685,93 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 {4730cba8-deed-4168-9f9e-34373e618026}  running      192.168.0.163   CT ct3
 ```
 
+## <a name='extra-info'></a>Расширенная информация о контейнерах и ВМ
+Подробную информацию о контейнере или виртуальной машине можно получить с помощью параметра `list` с ключом `-i` (`--info`):
+```
+[root@virtuozzo ~]# prlctl list -i ct4
+INFO
+ID: {22c418d7-948b-456e-9d84-d59ab5ead661}
+EnvID: 22c418d7-948b-456e-9d84-d59ab5ead661
+Name: ct4
+Description:
+Type: CT
+State: running
+OS: centos7
+Template: no
+Uptime: 00:00:00 (since 2016-02-09 17:04:41)
+Home: /vz/private/22c418d7-948b-456e-9d84-d59ab5ead661
+Owner: root
+Effective owner: owner
+GuestTools: state=possibly_installed
+Autostart: on
+Autostop: suspend
+Autocompact: on
+Undo disks: off
+Boot order:
+EFI boot: off
+Allow select boot device: off
+External boot device:
+Remote display: mode=off address=0.0.0.0
+Remote display state: stopped
+Hardware:
+  cpu cpus=unlimited VT-x accl=high mode=32 cpuunits=1000 ioprio=4
+  memory 512Mb
+  video 0Mb 3d acceleration=highest vertical sync=yes
+  memory_guarantee auto
+  hdd0 (+) image='/vz/private/22c418d7-948b-456e-9d84-d59ab5ead661/root.hdd' type='expanded' 10240Mb mnt=/
+  venet0 (+) type='routed' ips='192.168.0.164/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB10/64 '
+Host Shared Folders: (-)
+Features:
+Encrypted: no
+Faster virtual machine: on
+Adaptive hypervisor: off
+Disabled Windows logo: on
+Auto compress virtual disks: on
+Nested virtualization: off
+PMU virtualization: off
+Offline management: (-)
+Hostname: ct4.virtuozzo.localhost
+DNS Servers: 192.168.0.1 192.168.0.2
+Search Domains: 192.168.0.1
+```
+
+Существует также возможность просмотра дополнительной информации о контейнерах:
+```
+[root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
+T  STATUS       NAME     HOSTNAME                    DIST         IP_ADDR
+CT running      ct2      ct2.virtuozzo.localhost     debian       192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
+CT running      ct1      ct1.virtuozzo.localhost     debian       192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
+VM stopped      vm1      vm1.virtuozzo.localhost     rhel7        192.168.0.163 FE80:0:0:0:20C:29FF:FE01:FB07
+
+```
+
+Список всех доступных полей:
+```
+[root@virtuozzo ~]# prlctl list -L
+uuid                 UUID
+envid                ENVID
+status               STATUS
+name                 NAME
+dist                 DIST
+owner                OWNER
+system-flags         SYSTEM_FLAGS
+description          DESCRIPTION
+numproc              NPROC
+ip                   IP_ADDR
+ip_configured        IP_ADDR
+hostname             HOSTNAME
+netif                NETIF
+mac                  MAC
+features             FEATURES
+location             LOCATION
+iolimit              IOLIMIT
+netdev               NETDEV
+type                 T
+ha_enable            HA_ENABLE
+ha_prio              HA_PRIO
+-                    -
+```
+
 ## [[⬆]](#toc) <a name='recommendations'></a>Рекомендации системному администратору
 * если работа хост-ноды замедлилась, для анализа нагрузки можно воспользоваться утилитами `ps`, `vzps`, `top`, `vztop` `dmesg`, `atop`
 * для обнаружения сетевых проблем можно воспользоваться утилитами `ping`, `traceroute`, `nmap`, `mtr`, `tcpdump`, `nc`, `iftop`
@@ -1808,12 +1811,14 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 * https://bugs.openvz.org/secure/Dashboard.jspa
 
 ## [[⬆]](#toc) <a name='todo'></a>TODO
-* Создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
-* Создание шаблона гостевой ОС на основе vztt/vzmktmpl
-* Проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
-* Управление сетью в Virtuozzo (veth/vlan/шейпинг)
-* Снапшоты и клонирование шаблонов
-* Бэкапы
+* создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
+* создание шаблона гостевой ОС на основе vztt/vzmktmpl
+* проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
+* управление сетью в Virtuozzo (veth/vlan/шейпинг)
+* снапшоты и клонирование шаблонов
+* бэкапы
+* `prlctl` для управления дисковыми квотами, `--memguarantee` вместо `--vm_overcommit`
+* некоторые ключи для `prlctl`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--description` `--template` `--autostart-delay` `--autostop` `--start-as-user`
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
