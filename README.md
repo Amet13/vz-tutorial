@@ -42,6 +42,7 @@
   - [Приостановка виртуальных машин](#pause-vm)
   - [Шаблоны конфигураций](#templates-vm)
   - [Добавление и удаление устройств в ВМ](#devices-vm)
+  - [Горячее подключение CPU и RAM](#hotplug-vm)
 10. [Миграция контейнеров и виртуальных машин](#migration)
 11. [Рекомендации системному администратору](#recommendations)
 12. [Планы Virtuozzo](#roadmap)
@@ -1667,6 +1668,55 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 [root@virtuozzo ~]# prlctl list vm1 -i | grep -i net
   net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
   net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
+```
+
+### <a name='hotplug-vm'></a>Горячее подключение CPU и RAM
+Для виртуальных машин доступно горячее подключение (hotplug) ресурсов без перезагрузки самих виртуальных машин, к таким ресурсом относятся оперативная память и процессор.
+По умолчанию для виртуальных машин горячее подключение отключено.
+
+Для добавления оперативной памяти "налету" необходимо установить параметр `--mem-hotplug on`:
+```
+[root@virtuozzo ~]# prlctl list vm1 -i | grep "memory "
+  memory 1024Mb
+[root@virtuozzo ~]# prlctl set vm1 --mem-hotplug on
+set mem hotplug: 1
+```
+
+После установки параметра нужно единожды перезагрузить виртуальную машину и затем изменять память "налету":
+```
+[root@virtuozzo ~]# prlctl restart vm1
+Restarting the VM...
+The VM has been successfully restarted.
+[root@virtuozzo ~]# prlctl set vm1 --memsize 1536M
+Set the memsize parameter to 1536Mb.
+[root@virtuozzo ~]# prlctl list vm1 -i | grep "memory "
+  memory 1536Mb hotplug
+```
+
+Для включения CPU hotplug, необходимо чтобы операционная система гостевой ВМ поддерживала данную функцию.
+На данный момент поддерживаются:
+* Дистрибутивы основанные на RHEL 5 и выше
+* Windows Server 2008 x64 и выше
+
+Включение CPU hotplug происходит по аналогии с MEM hotplug:
+```
+[root@virtuozzo ~]# prlctl list vm1 -i | grep cpu
+  cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-1
+[root@virtuozzo ~]# prlctl set vm1 --cpu-hotplug on
+  set cpu hotplug: 1
+```
+
+Перезагрузка виртуальной машины и проверка ресурсов:
+```
+[root@virtuozzo ~]# prlctl restart vm1
+Restarting the VM...
+The VM has been successfully restarted.
+[root@virtuozzo ~]# prlctl set vm1 --cpuunits 2000 --cpus 3 --cpumask 0-2
+set cpus(4): 3
+set cpuunits 2000
+set cpu mask 0-2
+[root@virtuozzo ~]# prlctl list vm1 -i | grep cpu
+  cpu cpus=3 VT-x hotplug accl=high mode=32 cpuunits=2000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-2
 ```
 
 ## [[⬆]](#toc) <a name='migration'></a>Миграция контейнеров и виртуальных машин
