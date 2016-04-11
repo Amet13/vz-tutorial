@@ -566,6 +566,11 @@ esxrcH7dyoA46LY
 [root@virtuozzo ~]# prlctl set ct1 --onboot yes
 ```
 
+Также можно добавить краткое описание контейнера:
+```
+[root@virtuozzo ~]# prlctl set ct1 --description "Frontend for app"
+```
+
 ### <a name='run-enter'></a>Запуск и вход
 Запуск контейнера:
 ```
@@ -1251,15 +1256,15 @@ The VM has been successfully created.
 ```
 [root@virtuozzo ~]# prlctl create vm1 -d list
 The following values are allowed:
-win-2000        win-xp          win-2003        win-vista       
-win-2008        win-7           win-8           win-2012        
-win-8.1         win             rhel            rhel7           
-suse            debian          fedora-core     fc              
-xandros         ubuntu          mandriva        mandrake        
-centos          centos7         psbm            redhat          
-opensuse        linux-2.4       linux-2.6       linux           
-mageia          mint            freebsd-4       freebsd-5       
-freebsd-6       freebsd-7       freebsd-8       freebsd         
+win-2000        win-xp          win-2003        win-vista
+win-2008        win-7           win-8           win-2012
+win-8.1         win             rhel            rhel7    
+suse            debian          fedora-core     fc       
+xandros         ubuntu          mandriva        mandrake
+centos          centos7         psbm            redhat   
+opensuse        linux-2.4       linux-2.6       linux    
+mageia          mint            freebsd-4       freebsd-5
+freebsd-6       freebsd-7       freebsd-8       freebsd  
 ```
 
 Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с именем `$NAME.pvm`:
@@ -1284,19 +1289,19 @@ config.pvs  config.pvs.backup  harddisk.hdd
 ```
 [root@virtuozzo ~]# prlctl list -a
 UUID                                    STATUS       IP_ADDR         T  NAME
-{6fe60288-fe50-49fe-a68d-7a8330837358}  stopped      -               CT ct1
-{2cdb07fd-a68a-4279-81c1-3d269460c2f7}  stopped      -               CT ct2
+{6fe60288-fe50-49fe-a68d-7a8330837358}  stopped      192.168.0.161   CT ct1
+{2cdb07fd-a68a-4279-81c1-3d269460c2f7}  stopped      192.168.0.162   CT ct2
 {485372f0-2ae3-4bfe-aa55-e556c37fea9f}  stopped      -               VM vm1
 ```
 
 По аналогии с контейнерами установим необходимые параметры для виртуальной машины:
 ```
+[root@virtuozzo ~]# prlctl set vm1 --description "Backend for app"
+[root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
 [root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
 [root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd FE80:0:0:0:20C:29FF:FE01:FB07
 [root@virtuozzo ~]# prlctl set vm1 --nameserver 192.168.0.1,192.168.0.2
-[root@virtuozzo ~]# prlctl set vm1 --autostart on
 [root@virtuozzo ~]# prlctl set vm1 --memsize 1024
-[root@virtuozzo ~]# prlctl set vm1 --videosize 64
 [root@virtuozzo ~]# prlctl set vm1 --cpus 2
 [root@virtuozzo ~]# prlctl set vm1 --cpuunits 1000
 [root@virtuozzo ~]# prlctl set vm1 --cpulimit 1024m
@@ -1306,9 +1311,15 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 [root@virtuozzo ~]# prlctl set vm1 --iopslimit 0
 ```
 
-Ключ `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
-
 Ключ `--videosize` указывает размер выделяемой видеопамяти в MB для виртуальной машины.
+```
+[root@virtuozzo ~]# prlctl set vm1 --videosize 64
+```
+
+<!--Ключ `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
+```
+[root@virtuozzo ~]# prlctl set vm1 --autostart on
+```-->
 
 Параметры виртуальной машины установлены, ее можно запускать, однако для установки гостевой ОС необходим образ ОС.
 Для хранения образов ОС можно создать каталог и централизованно хранить все там:
@@ -1442,6 +1453,7 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 
 ### <a name='pause-vm'></a>Приостановка виртуальных машин
 Команды управления контейнерами с помощью `prlctl` аналогично используются и для ВМ:
+* `set`
 * `start`
 * `exec`
 * `enter`
@@ -1817,7 +1829,10 @@ ha_prio              HA_PRIO
 * снапшоты и клонирование шаблонов
 * бэкапы
 * `prlctl` для управления дисковыми квотами (`--diskinodes` для `prlctl` не работает)
-* некоторые ключи для `prlctl`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--description` `--template` `--autostart-delay` `--autostop` `--start-as-user`, `--memguarantee`
+* некоторые ключи для `prlctl`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user` `--memguarantee`
+* измененная схема архитектуры Virtuozzo
+* не работает `autostart`, `autostart-delay` для ВМ
+* не работает `capture`
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
