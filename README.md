@@ -1256,15 +1256,15 @@ The VM has been successfully created.
 ```
 [root@virtuozzo ~]# prlctl create vm1 -d list
 The following values are allowed:
-win-2000        win-xp          win-2003        win-vista
-win-2008        win-7           win-8           win-2012
-win-8.1         win             rhel            rhel7    
-suse            debian          fedora-core     fc       
-xandros         ubuntu          mandriva        mandrake
-centos          centos7         psbm            redhat   
-opensuse        linux-2.4       linux-2.6       linux    
-mageia          mint            freebsd-4       freebsd-5
-freebsd-6       freebsd-7       freebsd-8       freebsd  
+win-2000        win-xp          win-2003        win-vista  
+win-2008        win-7           win-8           win-2012   
+win-8.1         win             rhel            rhel7      
+suse            debian          fedora-core     fc         
+xandros         ubuntu          mandriva        mandrake   
+centos          centos7         psbm            redhat     
+opensuse        linux-2.4       linux-2.6       linux      
+mageia          mint            freebsd-4       freebsd-5  
+freebsd-6       freebsd-7       freebsd-8       freebsd    
 ```
 
 Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с именем `$NAME.pvm`:
@@ -1829,9 +1829,9 @@ ha_prio              HA_PRIO
 * снапшоты и клонирование шаблонов
 * бэкапы
 * `prlctl` для управления дисковыми квотами (`--diskinodes` для `prlctl` не работает)
-* некоторые ключи для `prlctl`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user` `--memguarantee`
+* некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user` `--memguarantee`
 * измененная схема архитектуры Virtuozzo
-* не работает `autostart`, `autostart-delay` для ВМ
+* не работает `autostart`, `autostart-delay` для ВМ (https://bugs.openvz.org/browse/OVZ-6715)
 * не работает `capture`
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
