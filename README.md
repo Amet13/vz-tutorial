@@ -321,49 +321,55 @@ Password: пароль_пользователя_root
 Просмотр списка уже имеющихся локальных шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
-centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
-centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
+fedora-23-x86_64                   :Fedora 23 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-7.0-x86_64                  :Debian 7.0 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-15.10-x86_64                :Ubuntu 15.10 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
+centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
+vzlinux-7-x86_64                   :VzLinux 7 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Доступные удаленно шаблоны:
 ```
 [root@virtuozzo ~]# vzpkg list --available --with-summary
-debian-8.0-x86_64
-fedora-22-x86_64
-ubuntu-14.04-x86_64
-ubuntu-14.10-x86_64
-ubuntu-15.04-x86_64
+centos-5-x86                       
+debian-8.0-x86_64                  
+fedora-22-x86_64                   
+suse-42.1-x86_64                   
+ubuntu-14.04-x86_64                
+ubuntu-14.10-x86_64                
+ubuntu-15.04-x86_64                
+ubuntu-16.04-x86_64                
+vzlinux-6-x86_64                   
 ```
 
-Установка всех доступных шаблонов:
+Установка шаблона:
 ```
-[root@virtuozzo ~]# vzpkg list --available --with-summary | xargs vzpkg install template
-```
-
-Альтернативный вариант установки шаблонов:
-```
-[root@virtuozzo ~]# yum install debian-8.0-x86_64-ez fedora-22-x86_64-ez ubuntu-14.04-x86_64-ez ubuntu-14.10-x86_64-ez ubuntu-15.04-x86_64-ez
+[root@virtuozzo ~]# vzpkg install template ubuntu-16.04-x86_64
 ```
 
-После этого можно увидеть локальный список доступных шаблонов гостевых ОС:
+Альтернативный вариант установки шаблона:
+```
+[root@virtuozzo ~]# yum install ubuntu-16.04-x86_64-ez
+```
+
+После этого можно увидеть текущий локальный список доступных шаблонов гостевых ОС:
 ```
 [root@virtuozzo ~]# vzpkg list -O --with-summary
-fedora-22-x86_64                   :Fedora 22 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-14.10-x86_64                :Ubuntu 14.10 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-15.04-x86_64                :Ubuntu 15.04 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
-centos-5-x86                       :Centos 5 (for ix86) Virtuozzo Template
+[root@virtuozzo ~]# vzpkg list -O --with-summary
+fedora-23-x86_64                   :Fedora 23 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-7.0-x86_64                  :Debian 7.0 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-16.04-x86_64                :Ubuntu 16.04 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-15.10-x86_64                :Ubuntu 15.10 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
+vzlinux-7-x86_64                   :VzLinux 7 (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Установка и обновление кэша шаблона:
 ```
-[root@virtuozzo ~]# vzpkg create cache ubuntu-14.04-x86_64
-[root@virtuozzo ~]# vzpkg update cache ubuntu-14.04-x86_64
+[root@virtuozzo ~]# vzpkg create cache ubuntu-16.04-x86_64
+[root@virtuozzo ~]# vzpkg update cache ubuntu-16.04-x86_64
 ```
 
 Если не указывать имя шаблона, то установка или обновление кэша произойдет для всех имеющихся шаблонов.
@@ -371,15 +377,14 @@ centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo T
 Просмотр даты последнего обновления кэша:
 ```
 [root@virtuozzo ~]# vzpkg list -O
-fedora-22-x86_64                   2015-10-19 01:24:25
-ubuntu-14.10-x86_64                2015-10-19 01:34:18
-ubuntu-14.04-x86_64                2015-10-19 01:50:54
-ubuntu-15.04-x86_64                2015-10-19 02:10:18
-debian-8.0-x86_64                  2015-10-19 01:00:28
-debian-8.0-x86_64-minimal          2015-10-19 01:20:22
-centos-5-x86                       2015-10-19 00:37:27
-centos-7-x86_64                    2015-10-19 00:48:16
-centos-6-x86_64                    2015-10-19 00:43:44
+fedora-23-x86_64                   
+debian-7.0-x86_64                  
+ubuntu-16.04-x86_64                2016-05-14 02:10:18
+ubuntu-15.10-x86_64                
+centos-7-x86_64                    
+centos-6-x86_64                    
+vzlinux-7-x86_64                   
+
 ```
 
 ### <a name='app-templates'></a>Шаблоны приложений
@@ -390,19 +395,20 @@ centos-6-x86_64                    2015-10-19 00:43:44
 ```
 [root@virtuozzo ~]# vzpkg list centos-7-x86_64
 centos-7-x86_64                     2016-02-09 17:01:05
-centos-7-x86_64      mod_ssl       
-centos-7-x86_64      jsdk          
-centos-7-x86_64      cyrus-imap    
-centos-7-x86_64      jre           
-centos-7-x86_64      docker        
-centos-7-x86_64      mailman       
-centos-7-x86_64      devel         
+centos-7-x86_64      tomcat        
 centos-7-x86_64      mysql         
 centos-7-x86_64      php           
+centos-7-x86_64      docker        
+centos-7-x86_64      mod_ssl       
 centos-7-x86_64      spamassassin  
-centos-7-x86_64      vzftpd        
 centos-7-x86_64      postgresql    
-centos-7-x86_64      tomcat        
+centos-7-x86_64      cyrus-imap    
+centos-7-x86_64      jsdk          
+centos-7-x86_64      mailman       
+centos-7-x86_64      jre           
+centos-7-x86_64      vzftpd        
+centos-7-x86_64      devel         
+
 ```
 
 Пример установки шаблона приложений `tomcat` и `jre`:
@@ -464,7 +470,7 @@ vps.vzpkgtools.conf-sample
 В этих конфигурационных файлах описаны контрольные параметры ресурсов, выделенное дисковое пространство, оперативная память и т.д.
 Например, при использовании конфига `ve-vswap.512MB.conf-sample`, создается контейнер с дисковым пространством 10GB, оперативной памятью 512MB и swap 512MB:
 ```
-[root@virtuozzo ~]# grep "DISKSPACE\|PHYSPAGES\|SWAPPAGES\|DISKINODES" /etc/vz/conf/ve-vswap.512MB.conf-sample
+[root@virtuozzo ~]# egrep "DISKSPACE|PHYSPAGES|SWAPPAGES|DISKINODES" /etc/vz/conf/ve-vswap.512MB.conf-sample
 PHYSPAGES="131072:131072"
 SWAPPAGES="131072"
 DISKSPACE="10485760:10485760"
