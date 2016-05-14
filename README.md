@@ -274,7 +274,7 @@ Password: пароль_пользователя_root
 
 Пакет `virtuozzo-release` содержит метаинформацию и yum-репозитории, необходимые для установки пакетов:
 ```
-[root@virtuozzo ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0-rtm/x86_64/os/Packages/v/virtuozzo-release-7.0.0-20.vz7.x86_64.rpm
+[root@virtuozzo ~]# yum localinstall https://download.openvz.org/virtuozzo/releases/7.0-rtm/x86_64/os/Packages/v/virtuozzo-release-7.0.0-40.vz7.x86_64.rpm
 ```
 
 Установка необходимых RPM-пакетов:
@@ -1252,9 +1252,9 @@ freebsd-6       	freebsd-7       	freebsd-8       	freebsd
 chrome-1        	chrome          	
 ```
 
-Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с именем `$NAME.pvm`:
+Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с UUID:
 ```
-[root@virtuozzo ~]# ls /vz/vmprivate/vm1.pvm/
+[root@virtuozzo ~]# ls /vz/vmprivate/1bdb465a-31e6-46c5-ad7b-947f6ff00208/
 config.pvs  config.pvs.backup  harddisk.hdd
 ```
 
@@ -1477,7 +1477,7 @@ The VM has been successfully started.
 Creating the virtual machine...
 Generate the VM configuration for win-2008.
 The VM has been successfully created.
-[root@virtuozzo ~]# prlctl list vm3 -i | grep "cpu\|memory\|video\|hdd0"
+[root@virtuozzo ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
 Boot order: hdd0 cdrom0
   cpu cpus=1 VT-x accl=high mode=32 ioprio=4 iolimit='0'
   memory 512Mb
@@ -1485,7 +1485,7 @@ Boot order: hdd0 cdrom0
   memory_guarantee auto
   hdd0 (+) scsi:0 image='/vz/vmprivate/vm3.pvm/harddisk.hdd' type='expanded' 65536Mb subtype=virtio-scsi
 [root@virtuozzo ~]# prlctl set vm3 --applyconfig config-1024MB-centos7
-[root@virtuozzo ~]# prlctl list vm3 -i | grep "cpu\|memory\|video\|hdd0"
+[root@virtuozzo ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
 Boot order: hdd0 cdrom0
   cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=4 iolimit='0' mask=0-1
   memory 1024Mb
@@ -1557,7 +1557,7 @@ Boot order: hdd0 cdrom1 hdd1
 Remove the usb device.
 [root@virtuozzo ~]# prlctl set vm1 --device-del cdrom1
 Remove the cdrom1 device.
-[root@virtuozzo ~]# prlctl list vm1 -i | grep "cdrom1\|usb"
+[root@virtuozzo ~]# prlctl list vm1 -i | egrep "cdrom1|usb"
 ```
 
 При удалении HDD из виртуальной машины можно сохранить сам виртуальный диск, для этого используется ключ `--detach-only`, по умолчанию диск удаляется, что является умолчанием ключа `--destroy-image`.
@@ -1769,7 +1769,7 @@ ha_prio              HA_PRIO
 ```
 
 ## [[⬆]](#toc) <a name='recommendations'></a>Рекомендации системному администратору
-* если работа хост-ноды замедлилась, для анализа нагрузки можно воспользоваться утилитами `ps`, `vzps`, `top`, `vztop`, `iotop`, `atop`
+* если работа хост-ноды замедлилась, для анализа нагрузки можно воспользоваться утилитами `vzps`, `vztop`, `iotop`, `atop`
 * для обнаружения сетевых проблем можно воспользоваться утилитами `ping`, `traceroute`, `nmap`, `mtr`, `tcpdump`, `nc`, `iftop`, `netstat`, `ss`
 * `strace` будет верным помощником для отслеживания системных вызовов
 * используйте RAID, LVM
@@ -1790,14 +1790,12 @@ ha_prio              HA_PRIO
 * внимательно работайте на сервере под учетной записью `root`
 * следите за рассылками новостей по безопасности
 * обновляйте ПО, систему и ее компоненты
-* если используете Virtuozzo для хостинга, то стоит позаботиться об автоматизации процессов создания окружений для пользователей, уведомления об окончании дискового пространства и блокировки услуг, например спам, вредоносная активность, повышенное потребление выделенных ресурсов
 * cледите за правами пользователей, файлов и каталогов на сервере
 * используйте системы мониторинга ресурсов (например Cacti, Munin, MRTG, Zabbix, Nagios, Icinga, Monit)
 * ведите внутреннюю документацию по серверам и их настройке
 * в случае обнаружения проблем, можно обратиться к документации проектов OpenVZ и Virtuozzo, а также задать вопросы на тематических форумах
 
 ## [[⬆]](#toc) <a name='roadmap'></a>Планы Virtuozzo
-* 2016 — Virtuozzo RC
 * 2016 — Virtuozzo RTM
 
 ## [[⬆]](#toc) <a name='links'></a>Ссылки
