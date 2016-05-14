@@ -308,10 +308,12 @@ Password: пароль_пользователя_root
 ```
 [root@virtuozzo ~]# timedatectl set-timezone Europe/Moscow
 ```
-По умолчанию сервер `ntp` уже установлен в системе (задается во время установки системы), поэтому достаточно только добавить сервис в автозагрузку:
+Установка `ntp` и синхронизация времени с удаленными серверами:
 ```
+[root@virtuozzo ~]# yum install ntp
 [root@virtuozzo ~]# systemctl start ntpd
 [root@virtuozzo ~]# systemctl enable ntpd
+[root@virtuozzo ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
 ```
 
 ## [[⬆]](#toc) <a name='templates-ct'></a>Управление шаблонами контейнеров
@@ -515,9 +517,9 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 
 Если же при создании контейнера не указывать желаемый шаблон, то Virtuozzo будет использовать шаблон по умолчанию.
 Конфигурационный файл, в котором указаны директивы по умолчанию `/etc/vz/vz.conf`.
-По умолчанию, используется шаблон `centos-6` и конфигурационный файл `basic`:
+По умолчанию, используется шаблон `centos-7` и конфигурационный файл `basic`:
 ```
-[root@virtuozzo ~]# grep "CONFIGFILE\|DEF_OSTEMPLATE" /etc/vz/vz.conf
+[root@virtuozzo ~]# egrep "CONFIGFILE|DEF_OSTEMPLATE" /etc/vz/vz.conf
 CONFIGFILE="basic"
 DEF_OSTEMPLATE=".centos-7"
 ```
@@ -558,8 +560,7 @@ eVjfsDkTE63s5Nw
 
 Или воспользоваться утилитой `pwgen`:
 ```
-[root@virtuozzo ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
-[root@virtuozzo ~]# yum install pwgen
+[root@virtuozzo ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/p/pwgen-2.07-1.el7.x86_64.rpm
 [root@virtuozzo ~]# pwgen -s 15 1
 esxrcH7dyoA46LY
 ```
@@ -1139,38 +1140,15 @@ Disks stats     0.000 0.000
 
 ```
 
-Для утилиты `top` также существует аналог `vztop`.
-Пример просмотра списка процессов отсортированных по нагрузке на процессор для контейнера `ct1`:
+Утилита `vztop` теперь заменена алиасом на `htop` с отображением UUID контейнера, которому принадлежит процесс:
 ```
-[root@virtuozzo ~]# vztop -E 3d32522a-80af-4773-b9fa-ea4915dee4b3 -o %CPU -b
-vztop - 21:13:45 up  1:03,  1 user,  load average: 0.01, 0.04, 0.32
-Tasks:  20 total,   0 running,  20 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.7 sy,  0.0 ni, 98.5 id,  0.1 wa,  0.0 hi,  0.5 si,  0.0 st
-KiB Mem :  1013704 total,   378752 free,   136600 used,   498352 buff/cache
-KiB Swap:   975868 total,   975868 free,        0 used.   691636 avail Mem
+[root@virtuozzo ~]# which vztop
+alias vztop='htop -s CTID'
+	/usr/bin/htop
+```
 
-                                    CTID     PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    5747 33        20   0  364424   6304   1280 S  40.0  0.6   0:03.37 apache2
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    2420 root      20   0   28168   3136   1908 S   0.0  0.3   0:00.32 systemd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    2432 root      20   0       0      0      0 S   0.0  0.0   0:00.00 kthreadd/3d3252
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    2433 root      20   0       0      0      0 S   0.0  0.0   0:00.00 khelper
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3088 101       20   0   26168   1448   1204 S   0.0  0.1   0:00.06 systemd-network
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3117 root      20   0   28856   1620   1356 S   0.0  0.2   0:00.12 systemd-journal
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3135 root      20   0   38916   1624   1132 S   0.0  0.2   0:00.04 systemd-udevd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3376 root      20   0   55156   3128   2460 S   0.0  0.3   0:00.01 sshd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3380 102       20   0   25732   1092    896 S   0.0  0.1   0:00.00 systemd-resolve
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3382 root      20   0   25884   1120    900 S   0.0  0.1   0:00.01 cron
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3388 root      20   0  182848   1884   1412 S   0.0  0.2   0:00.02 rsyslogd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3433 root      20   0   12648    840    692 S   0.0  0.1   0:00.00 agetty
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3434 root      20   0   12648    840    692 S   0.0  0.1   0:00.00 agetty
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3508 root      20   0   20200    956    756 S   0.0  0.1   0:00.00 xinetd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3617 root      20   0   65452   1164    328 S   0.0  0.1   0:00.00 saslauthd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3625 root      20   0   65452    836      0 S   0.0  0.1   0:00.00 saslauthd
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    3755 root      20   0   73496   2724   1512 S   0.0  0.3   0:00.58 apache2
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    4074 root      20   0   36144   2388   1848 S   0.0  0.2   0:00.06 master
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    4081 105       20   0   38208   2316   1776 S   0.0  0.2   0:00.04 pickup
-    3d32522a-80af-4773-b9fa-ea4915dee4b3    4082 105       20   0   38256   2336   1792 S   0.0  0.2   0:00.02 qmgr
-```
+*Утилита vztop*
+![vztop](https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vztop.png)
 
 ## [[⬆]](#toc) <a name='forward-dev-ct'></a>Проброс устройств в контейнеры
 ### <a name='tun-tap'></a>TUN/TAP
@@ -1262,15 +1240,16 @@ The VM has been successfully created.
 ```
 [root@virtuozzo ~]# prlctl create vm1 -d list
 The following values are allowed:
-win-2000        win-xp          win-2003        win-vista  
-win-2008        win-7           win-8           win-2012   
-win-8.1         win             rhel            rhel7      
-suse            debian          fedora-core     fc         
-xandros         ubuntu          mandriva        mandrake   
-centos          centos7         psbm            redhat     
-opensuse        linux-2.4       linux-2.6       linux      
-mageia          mint            freebsd-4       freebsd-5  
-freebsd-6       freebsd-7       freebsd-8       freebsd    
+win-2000        	win-xp          	win-2003        	win-vista       
+win-2008        	win-7           	win-8           	win-2012        
+win-8.1         	win             	rhel            	rhel7           
+suse            	debian          	fedora-core     	fc              
+xandros         	ubuntu          	mandriva        	centos          
+centos7         	vzlinux7        	psbm            	redhat          
+opensuse        	linux-2.4       	linux-2.6       	linux           
+mageia          	mint            	freebsd-4       	freebsd-5       
+freebsd-6       	freebsd-7       	freebsd-8       	freebsd         
+chrome-1        	chrome          	
 ```
 
 Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с именем `$NAME.pvm`:
