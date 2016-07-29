@@ -144,7 +144,7 @@ OpenVZ позволяет создавать множество защищенн
 
 Контейнеры можно разделить на две составляющие:
 * ядро (namespaces, cgroups, CRIU, ploop, vcmmd...)
-* пользовательские утилиты (prlctl, vzctl, vzpkg, vzlist, vzdump...)
+* пользовательские утилиты (prlctl, vzctl, vzpkg, vzlist...)
 
 Namespaces — пространства имен.
 Это механизм ядра, который позволяет изолировать процессы друг от друга. Изоляция может быть выполнена в шести контекстах (пространствах имен):
@@ -205,7 +205,7 @@ VCMM (Virtuozzo containers memory management) — сервис управлен�
 Также представлена "живая" миграция для контейнеров, реализованная с помощью инструментария CRIU и P.Haul.
 
 25 июля 2016 года [анонсирован](https://lists.openvz.org/pipermail/announce/2016-July/000664.html) окончательный релиз продукта под именем OpenVZ 7.0.
-В релизе объявлены такие события как отказ от развития SimFS, также объявлено что со следующей версии OpenVZ утилита `vzctl` будет объявлена устаревшей, рекомендуется вместо нее использовать `prlctl` или `virsh`.
+В релизе объявлены такие события как отказ от развития SimFS, также объявлено что со следующей версии OpenVZ утилита vzctl будет объявлена устаревшей, рекомендуется вместо нее использовать prlctl или virsh.
 
 ## [[⬆]](#toc) <a name='changes'></a>Что нового в OpenVZ 7?
 Основные изменения по сравнению с OpenVZ 6 (2.6.32):
@@ -213,13 +213,14 @@ VCMM (Virtuozzo containers memory management) — сервис управлен�
 * благодаря большой интеграции кода в ванильное ядро, количество патчей значительно сократилось, для сравнения число коммитов в 2.6.18 (RHEL 5) равно 264000, для 2.6.32 (RHEL 6) — 202000, для 3.10 (RHEL 7) — 66000 коммитов
 * реализация живой миграции с помощью P.Haul и CRIU
 * возможность создания виртуальных машин на базе KVM
-* отказ от управления контейнерами с помощью `vzctl` в пользу `prlctl` и `virsh`
+* отказ от управления контейнерами с помощью vzctl в пользу prlctl и virsh
 * использование механизма VCMM для управления памятью
-* отказ от развития SimFS
+* отказ от развития SimFS в пользу ploop
 * унифицированное управление контейнерами и виртуальными машинами с помощью libvirt
 * гарантированные лимиты памяти
 * горячее подключение CPU/RAM для виртуальных машин, поддержка KSM
 * обновленная документация с 2005 года
+* интеграция работы с Docker и OpenStack
 
 ## [[⬆]](#toc) <a name='install'></a>Установка и подготовительные действия
 Начиная с версии OpenVZ 7.0 доступен только один вариант установки, с помощью ISO-образа дистрибутива.
@@ -273,30 +274,30 @@ VCMM (Virtuozzo containers memory management) — сервис управлен�
 ```
 user@localhost ~ $ ssh vzuser@192.168.0.150
 vzuser@192.168.0.150's password: пароль_пользователя_vzuser
-[vzuser@virtuozzo ~]$ su -
+[vzuser@vz ~]$ su -
 Password: пароль_пользователя_root
-[root@virtuozzo ~]#
+[root@vz ~]#
 ```
 
 ### <a name='prepare'></a>Подготовительные действия
 На сервере важно всегда обновлять программное обеспечение, так как в новых версиях не только могут добавлять новые возможности, но и исправлять уязвимости.
 Указанная ниже команда обновляет все существующие в системе пакеты:
 ```
-[root@virtuozzo ~]# yum update
+[root@vz ~]# yum update
 ```
 Для сервера важно, чтобы было установлено правильное время.
 Чтобы синхронизировать время с интернетом необходимо настроить сервер `ntp`.
 
 Если во время установки ОС, не была установлена корректная временная зона, то можно это сделать позже:
 ```
-[root@virtuozzo ~]# timedatectl set-timezone Europe/Moscow
+[root@vz ~]# timedatectl set-timezone Europe/Moscow
 ```
 Установка `ntp` и синхронизация времени с удаленными серверами:
 ```
-[root@virtuozzo ~]# yum install ntp
-[root@virtuozzo ~]# systemctl start ntpd
-[root@virtuozzo ~]# systemctl enable ntpd
-[root@virtuozzo ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
+[root@vz ~]# yum install ntp
+[root@vz ~]# systemctl start ntpd
+[root@vz ~]# systemctl enable ntpd
+[root@vz ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
 ```
 
 ## [[⬆]](#toc) <a name='templates-ct'></a>Управление шаблонами контейнеров
@@ -305,71 +306,57 @@ Password: пароль_пользователя_root
 
 Просмотр списка уже имеющихся локальных шаблонов гостевых ОС:
 ```
-[root@virtuozzo ~]# vzpkg list -O --with-summary
-fedora-23-x86_64                   :Fedora 23 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-7.0-x86_64                  :Debian 7.0 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-15.10-x86_64                :Ubuntu 15.10 (for AMD64/Intel EM64T) Virtuozzo Template
+[root@vz ~]# vzpkg list -O --with-summary
+ubuntu-14.04-x86_64                :Ubuntu 14.04 (for AMD64/Intel EM64T) Virtuozzo Template
+ubuntu-16.04-x86_64                :Ubuntu 16.04 (for AMD64/Intel EM64T) Virtuozzo Template
+vzlinux-7-x86_64                   :VzLinux 7 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
 centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
-vzlinux-7-x86_64                   :VzLinux 7 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo Template
+debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
 Доступные удаленно шаблоны:
 ```
-[root@virtuozzo ~]# vzpkg list --available --with-summary
-centos-5-x86                       
-debian-8.0-x86_64                  
+[root@vz ~]# vzpkg list --available --with-summary
+debian-7.0-x86_64                  
 fedora-22-x86_64                   
+fedora-23-x86_64                   
 suse-42.1-x86_64                   
-ubuntu-14.04-x86_64                
 ubuntu-14.10-x86_64                
 ubuntu-15.04-x86_64                
-ubuntu-16.04-x86_64                
+ubuntu-15.10-x86_64                
 vzlinux-6-x86_64                   
 ```
 
 Установка шаблона:
 ```
-[root@virtuozzo ~]# vzpkg install template ubuntu-16.04-x86_64
+[root@vz ~]# vzpkg install template ubuntu-16.04-x86_64
 ```
 
 Альтернативный вариант установки шаблона:
 ```
-[root@virtuozzo ~]# yum install ubuntu-16.04-x86_64-ez
-```
-
-После этого можно увидеть текущий локальный список доступных шаблонов гостевых ОС:
-```
-[root@virtuozzo ~]# vzpkg list -O --with-summary
-[root@virtuozzo ~]# vzpkg list -O --with-summary
-fedora-23-x86_64                   :Fedora 23 (for AMD64/Intel EM64T) Virtuozzo Template
-debian-7.0-x86_64                  :Debian 7.0 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-16.04-x86_64                :Ubuntu 16.04 (for AMD64/Intel EM64T) Virtuozzo Template
-ubuntu-15.10-x86_64                :Ubuntu 15.10 (for AMD64/Intel EM64T) Virtuozzo Template
-centos-7-x86_64                    :Centos 7 (for AMD64/Intel EM64T) Virtuozzo Template
-centos-6-x86_64                    :Centos 6 (for AMD64/Intel EM64T) Virtuozzo Template
-vzlinux-7-x86_64                   :VzLinux 7 (for AMD64/Intel EM64T) Virtuozzo Template
+[root@vz ~]# yum install ubuntu-16.04-x86_64-ez
 ```
 
 Установка и обновление кэша шаблона:
 ```
-[root@virtuozzo ~]# vzpkg create cache ubuntu-16.04-x86_64
-[root@virtuozzo ~]# vzpkg update cache ubuntu-16.04-x86_64
+[root@vz ~]# vzpkg create cache ubuntu-16.04-x86_64
+[root@vz ~]# vzpkg update cache ubuntu-16.04-x86_64
 ```
 
 Если не указывать имя шаблона, то установка или обновление кэша произойдет для всех имеющихся шаблонов.
 
 Просмотр даты последнего обновления кэша:
 ```
-[root@virtuozzo ~]# vzpkg list -O
-fedora-23-x86_64                   
-debian-7.0-x86_64                  
+[root@vz ~]# vzpkg list -O
+ubuntu-14.04-x86_64                
 ubuntu-16.04-x86_64                2016-05-14 02:10:18
-ubuntu-15.10-x86_64                
+vzlinux-7-x86_64                   
 centos-7-x86_64                    
 centos-6-x86_64                    
-vzlinux-7-x86_64                   
-
+debian-8.0-x86_64                  
+debian-8.0-x86_64-minimal          
 ```
 
 ### <a name='app-templates'></a>Шаблоны приложений
@@ -378,37 +365,36 @@ vzlinux-7-x86_64
 
 Просмотр списка шаблонов приложений для `centos-7-x86_64`:
 ```
-[root@virtuozzo ~]# vzpkg list centos-7-x86_64
+[root@vz ~]# vzpkg list centos-7-x86_64
 centos-7-x86_64                     2016-02-09 17:01:05
+centos-7-x86_64      cyrus-imap    
 centos-7-x86_64      tomcat        
-centos-7-x86_64      mysql         
 centos-7-x86_64      php           
 centos-7-x86_64      docker        
-centos-7-x86_64      mod_ssl       
-centos-7-x86_64      spamassassin  
-centos-7-x86_64      postgresql    
-centos-7-x86_64      cyrus-imap    
-centos-7-x86_64      jsdk          
 centos-7-x86_64      mailman       
+centos-7-x86_64      spamassassin  
+centos-7-x86_64      devel         
+centos-7-x86_64      mod_ssl       
 centos-7-x86_64      jre           
 centos-7-x86_64      vzftpd        
-centos-7-x86_64      devel         
-
+centos-7-x86_64      postgresql    
+centos-7-x86_64      mysql         
+centos-7-x86_64      jsdk          
 ```
 
 Пример установки шаблона приложений `tomcat` и `jre`:
 ```
-[root@virtuozzo ~]# vzpkg list ct5
+[root@vz ~]# vzpkg list ct5
 centos-7-x86_64                    2016-02-09 17:00:57
-[root@virtuozzo ~]# vzpkg install ct5 tomcat jre
-[root@virtuozzo ~]# prlctl exec ct5 systemctl start tomcat
-[root@virtuozzo ~]# prlctl exec ct5 systemctl is-active tomcat
+[root@vz ~]# vzpkg install ct5 tomcat jre
+[root@vz ~]# prlctl exec ct5 systemctl start tomcat
+[root@vz ~]# prlctl exec ct5 systemctl is-active tomcat
 active
 ```
 
 После установки можно проверить список установленных шаблонов для контейнера:
 ```
-[root@virtuozzo ~]# vzpkg list ct5
+[root@vz ~]# vzpkg list ct5
 centos-7-x86_64                    2016-02-09 17:00:57
 centos-7-x86_64      tomcat        2016-02-09 19:56:03
 centos-7-x86_64      jre           2016-02-09 20:03:50
@@ -416,7 +402,7 @@ centos-7-x86_64      jre           2016-02-09 20:03:50
 
 Удаление шаблона приложения из контейнера:
 ```
-[root@virtuozzo ~]# vzpkg remove ct5 tomcat
+[root@vz ~]# vzpkg remove ct5 tomcat
 Removed:
  tomcat                 noarch    0:7.0.54-2.el7_1
  tomcat-admin-webapps   noarch    0:7.0.54-2.el7_1
@@ -424,7 +410,7 @@ Removed:
  tomcat-lib             noarch    0:7.0.54-2.el7_1
  tomcat-el-2.2-api      noarch    0:7.0.54-2.el7_1
 
-[root@virtuozzo ~]# vzpkg list ct5
+[root@vz ~]# vzpkg list ct5
 centos-7-x86_64                    2016-02-09 17:00:57
 centos-7-x86_64      jre           2016-02-09 20:03:50
 ```
@@ -441,7 +427,7 @@ centos-7-x86_64      jre           2016-02-09 20:03:50
 При создании контейнера можно использовать типовую конфигурацию.
 Типовые файлы конфигураций находятся в том же каталоге `/etc/vz/conf/`:
 ```
-[root@virtuozzo ~]# ls /etc/vz/conf/ | grep sample
+[root@vz ~]# ls /etc/vz/conf/ | grep sample
 ve-basic.conf-sample
 ve-confixx.conf-sample
 ve-vswap.1024MB.conf-sample
@@ -455,7 +441,7 @@ vps.vzpkgtools.conf-sample
 В этих конфигурационных файлах описаны контрольные параметры ресурсов, выделенное дисковое пространство, оперативная память и т.д.
 Например, при использовании конфига `ve-vswap.512MB.conf-sample`, создается контейнер с дисковым пространством 10GB, оперативной памятью 512MB и swap 512MB:
 ```
-[root@virtuozzo ~]# egrep "DISKSPACE|PHYSPAGES|SWAPPAGES|DISKINODES" /etc/vz/conf/ve-vswap.512MB.conf-sample
+[root@vz ~]# egrep "DISKSPACE|PHYSPAGES|SWAPPAGES|DISKINODES" /etc/vz/conf/ve-vswap.512MB.conf-sample
 PHYSPAGES="131072:131072"
 SWAPPAGES="131072"
 DISKSPACE="10485760:10485760"
@@ -466,8 +452,8 @@ DISKINODES="655360:655360"
 Создадим свой конфигурационный файл, на базе уже существующего `vswap.512MB`.
 Исправим в нем только значения `PHYSPAGES`, `SWAPPAGES`, `DISKSPACE`, `DISKINODES`:
 ```
-[root@virtuozzo ~]# cp /etc/vz/conf/ve-vswap.512MB.conf-sample /etc/vz/conf/ve-vswap.1GB.conf-sample
-[root@virtuozzo ~]# vim /etc/vz/conf/ve-vswap.1GB.conf-sample
+[root@vz ~]# cp /etc/vz/conf/ve-vswap.512MB.conf-sample /etc/vz/conf/ve-vswap.1GB.conf-sample
+[root@vz ~]# vim /etc/vz/conf/ve-vswap.1GB.conf-sample
 PHYSPAGES="262144:262144"
 SWAPPAGES="262144"
 DISKSPACE="20971520:20971520"
@@ -477,14 +463,14 @@ DISKINODES="1310720:1310720"
 
 Установка конфигурационного файла шаблона на примере `vswap.1GB` (контейнер должен быть создан):
 ```
-[root@virtuozzo ~]# prlctl set ct1 --applyconfig vswap.1GB
+[root@vz ~]# prlctl set ct1 --applyconfig vswap.1GB
 The CT has been successfully configured.
 ```
 
 ### <a name='create-ct'></a>Создание контейнера
 В качестве параметра к идентификатору контейнера может использоваться любое имя:
 ```
-[root@virtuozzo ~]# prlctl create ct1 --ostemplate debian-8.0-x86_64 --vmtype=ct
+[root@vz ~]# prlctl create ct1 --ostemplate debian-8.0-x86_64 --vmtype=ct
 Creating the Virtuozzo Container...
 The Container has been successfully created.
 ```
@@ -493,16 +479,16 @@ The Container has been successfully created.
 
 Теперь можно просмотреть список имеющихся в системе контейнеров:
 ```
-[root@virtuozzo ~]# prlctl list -a
+[root@vz ~]# prlctl list -a
 UUID                                    STATUS       IP_ADDR         T  NAME
 {3d32522a-80af-4773-b9fa-ea4915dee4b3}  stopped      -               CT ct1
 ```
 
-Если же при создании контейнера не указывать желаемый шаблон, то Virtuozzo будет использовать шаблон по умолчанию.
+Если же при создании контейнера не указывать желаемый шаблон, то OpenVZ будет использовать шаблон по умолчанию.
 Конфигурационный файл, в котором указаны директивы по умолчанию `/etc/vz/vz.conf`.
 По умолчанию, используется шаблон `centos-7` и конфигурационный файл `basic`:
 ```
-[root@virtuozzo ~]# egrep "CONFIGFILE|DEF_OSTEMPLATE" /etc/vz/vz.conf
+[root@vz ~]# egrep "CONFIGFILE|DEF_OSTEMPLATE" /etc/vz/vz.conf
 CONFIGFILE="basic"
 DEF_OSTEMPLATE=".centos-7"
 ```
@@ -515,36 +501,36 @@ DEF_OSTEMPLATE=".centos-7"
 
 Добавление IP-адресов:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --ipadd 192.168.0.161/24
-[root@virtuozzo ~]# prlctl set ct1 --ipadd fe80::20c:29ff:fe01:fb08
+[root@vz ~]# prlctl set ct1 --ipadd 192.168.0.161/24
+[root@vz ~]# prlctl set ct1 --ipadd fe80::20c:29ff:fe01:fb08
 ```
 
 Установка DNS серверов и hostname:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --nameserver 192.168.0.1,192.168.0.2
-[root@virtuozzo ~]# prlctl set ct1 --hostname ct1.virtuozzo.localhost
+[root@vz ~]# prlctl set ct1 --nameserver 192.168.0.1,192.168.0.2
+[root@vz ~]# prlctl set ct1 --hostname ct1.vz.localhost
 ```
 
 Установка поискового домена:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --searchdomain 192.168.0.1
+[root@vz ~]# prlctl set ct1 --searchdomain 192.168.0.1
 ```
 
 Установка пароля суперпользователя:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --userpasswd root:eVjfsDkTE63s5Nw
+[root@vz ~]# prlctl set ct1 --userpasswd root:eVjfsDkTE63s5Nw
 ```
 
 Сгенерировать пароль можно штатными средствами Linux:
 ```
-[root@virtuozzo ~]# cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 15 | head -1
+[root@vz ~]# cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 15 | head -1
 eVjfsDkTE63s5Nw
 ```
 
 Или воспользоваться утилитой `pwgen`:
 ```
-[root@virtuozzo ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/p/pwgen-2.07-1.el7.x86_64.rpm
-[root@virtuozzo ~]# pwgen -s 15 1
+[root@vz ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/p/pwgen-2.07-1.el7.x86_64.rpm
+[root@vz ~]# pwgen -s 15 1
 esxrcH7dyoA46LY
 ```
 
@@ -553,25 +539,25 @@ esxrcH7dyoA46LY
 
 Для запуска контейнера при старте хост-ноды добавляем:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --onboot yes
+[root@vz ~]# prlctl set ct1 --onboot yes
 ```
 
 Также можно добавить краткое описание контейнера:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --description "Frontend for app"
+[root@vz ~]# prlctl set ct1 --description "Frontend for app"
 ```
 
 ### <a name='run-enter'></a>Запуск и вход
 Запуск контейнера:
 ```
-[root@virtuozzo ~]# prlctl start ct1
+[root@vz ~]# prlctl start ct1
 Starting the CT...
 The CT has been successfully started.
 ```
 
 Проверка сетевых интерфейсов внутри гостевой ОС:
 ```
-[root@virtuozzo ~]# prlctl exec ct1 ip addr show venet0
+[root@vz ~]# prlctl exec ct1 ip addr show venet0
 2: venet0: <BROADCAST,POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default
     link/void
     inet 127.0.0.1/32 scope host venet0
@@ -586,29 +572,29 @@ The CT has been successfully started.
 
 Проверка корректности hostname:
 ```
-[root@virtuozzo ~]# prlctl exec ct1 hostname
-ct1.virtuozzo.localhost
+[root@vz ~]# prlctl exec ct1 hostname
+ct1.vz.localhost
 ```
 
 Проверка доступности контейнера в сети и корректность пароля суперпользователя:
 ```
-[root@virtuozzo ~]# ssh root@192.168.0.161
+[root@vz ~]# ssh root@192.168.0.161
 root@192.168.0.161's password: eVjfsDkTE63s5Nw
 root@ct1:~#
 ```
 
 Вход в контейнер напрямую с хост-ноды:
 ```
-[root@virtuozzo ~]# prlctl enter ct1
+[root@vz ~]# prlctl enter ct1
 entered into CT
 root@ct1:/# exit
 logout
-[root@virtuozzo ~]#
+[root@vz ~]#
 ```
 
 Переход в консоль контейнера:
 ```
-[root@virtuozzo ~]# prlctl console ct2
+[root@vz ~]# prlctl console ct2
 Attached to CT 9d921e42-1087-45e6-bea0-3d706b2d1862 tty2 (type ESC . to detach)
 
 CentOS Linux 7 (Core)
@@ -625,9 +611,9 @@ Password:
 ### <a name='status-ct'></a>Управление состоянием контейнера
 Статус контейнера:
 ```
-[root@virtuozzo ~]# prlctl status ct1
+[root@vz ~]# prlctl status ct1
 CT ct1 exist running
-[root@virtuozzo ~]# prlctl status ct2
+[root@vz ~]# prlctl status ct2
 CT ct2 exist stopped
 ```
 
@@ -635,7 +621,7 @@ CT ct2 exist stopped
 
 Остановка контейнера:
 ```
-[root@virtuozzo ~]# prlctl stop ct1
+[root@vz ~]# prlctl stop ct1
 Stopping the CT...
 The CT has been successfully stopped.
 ```
@@ -643,14 +629,14 @@ The CT has been successfully stopped.
 Иногда нужно выключить контейнер как можно быстрее, например если он был подвержен взлому или создает критическую нагрузку на хост-ноду.
 Для того чтобы срочно выключить контейнер, нужно использовать ключ `--kill`:
 ```
-[root@virtuozzo ~]# prlctl stop ct1 --kill
+[root@vz ~]# prlctl stop ct1 --kill
 Stopping the CT...
 The CT has been forcibly stopped
 ```
 
 Перезапуск контейнера:
 ```
-[root@virtuozzo ~]# prlctl restart ct1
+[root@vz ~]# prlctl restart ct1
 Restarting the CT...
 The CT has been successfully restarted.
 ```
@@ -659,22 +645,22 @@ The CT has been successfully restarted.
 
 Параметр `suspend` приостанавливает контейнера, а `resume` — восстанавливает:
 ```
-[root@virtuozzo ~]# prlctl suspend ct1
+[root@vz ~]# prlctl suspend ct1
 Suspending the CT...
 The CT has been successfully suspended.
-[root@virtuozzo ~]# prlctl status ct1
+[root@vz ~]# prlctl status ct1
 CT ct1 exist suspended
-[root@virtuozzo ~]# prlctl resume ct1
+[root@vz ~]# prlctl resume ct1
 Resuming the CT...
 The CT has been successfully resumed.
 ```
 
 Для удаления контейнера существует параметр `delete` (перед удалением, контейнер нужно сначала остановить):
 ```
-[root@virtuozzo ~]# prlctl stop ct1
+[root@vz ~]# prlctl stop ct1
 Stopping the CT...
 The CT has been successfully stopped.
-[root@virtuozzo ~]# prlctl delete ct1
+[root@vz ~]# prlctl delete ct1
 Removing the CT...
 The CT has been successfully removed.
 ```
@@ -684,31 +670,31 @@ The CT has been successfully removed.
 Для того чтобы смонтировать содержимое контейнера без его запуска существует опция `mount`, для размонтирования — `umount`.
 Это может пригодиться например для того, чтобы поправить конфигурационные файлы контейнера с хост-ноды, если контейнер не стартует:
 ```
-[root@virtuozzo ~]# prlctl list ct6
+[root@vz ~]# prlctl list ct6
 UUID                                    STATUS       IP_ADDR         T  NAME
 {8de0101f-c166-42ce-ad53-a7900b223d46}  stopped      192.168.0.166   CT ct6
-[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
-[root@virtuozzo ~]# prlctl mount ct6
+[root@vz ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@vz ~]# prlctl mount ct6
 Mounting the CT...
 The CT has been successfully mounted.
-[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@vz ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
 bin  boot  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
-[root@virtuozzo ~]# prlctl status ct6
+[root@vz ~]# prlctl status ct6
 CT wordpress-162 exist mounted
-[root@virtuozzo ~]# prlctl umount ct6
+[root@vz ~]# prlctl umount ct6
 Unmounting the CT...
 The CT has been successfully unmounted.
-[root@virtuozzo ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
-[root@virtuozzo ~]#
+[root@vz ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@vz ~]#
 ```
 
 Переместить частную область контейнера в другую область можно с помощью параметра `move`:
 ```
-[root@virtuozzo ~]# mkdir /home/private
-[root@virtuozzo ~]# prlctl move ct6 --dst /home/private
+[root@vz ~]# mkdir /home/private
+[root@vz ~]# prlctl move ct6 --dst /home/private
 Move the ct6 CT to /home/private...
 The CT has been successfully moved.
-[root@virtuozzo ~]# ls /home/private/8de0101f-c166-42ce-ad53-a7900b223d46/
+[root@vz ~]# ls /home/private/8de0101f-c166-42ce-ad53-a7900b223d46/
 dump/       fs/         .lck        .owner      root.hdd/   scripts/    templates/  .uptime     ve.conf     .ve.layout  .ve.xml
 ```
 
@@ -717,13 +703,13 @@ dump/       fs/         .lck        .owner      root.hdd/   scripts/    template
 
 Переустановка и старт контейнера (для переустановки нужно сначала остановить контейнер):
 ```
-[root@virtuozzo ~]# prlctl stop ct1
+[root@vz ~]# prlctl stop ct1
 Stopping the CT...
 The CT has been successfully stopped.
-[root@virtuozzo ~]# vzctl reinstall ct1 --skipbackup
+[root@vz ~]# vzctl reinstall ct1 --skipbackup
 ...
 Container was successfully reinstalled
-[root@virtuozzo ~]# prlctl start ct1
+[root@vz ~]# prlctl start ct1
 Starting the CT...
 The CT has been successfully started.
 ```
@@ -732,12 +718,12 @@ The CT has been successfully started.
 Для того, чтобы не копировать частную область предыдущего контейнера, необходимо использовать ключ `--skipbackup`.
 
 ### <a name='clone-ct'></a>Клонирование контейнера
-Virtuozzo позволяет клонировать контейнеры:
+OpenVZ позволяет клонировать контейнеры:
 ```
-[root@virtuozzo ~]# prlctl clone ct1 --name ct2
+[root@vz ~]# prlctl clone ct1 --name ct2
 Clone the ct1 CT to CT ct2...
 The CT has been successfully cloned.
-[root@virtuozzo ~]# prlctl list -a
+[root@vz ~]# prlctl list -a
 UUID                                    STATUS       IP_ADDR         T  NAME
 {3d32522a-80af-4773-b9fa-ea4915dee4b3}  running      192.168.0.161   CT ct1
 {54bc2ba6-b040-469e-9fda-b0eabda822d4}  stopped      192.168.0.161   CT ct2
@@ -745,7 +731,7 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 
 При клонировании контейнера необходимо помнить о смене IP-адреса, иначе при попытке запуска будет наблюдаться ошибка:
 ```
-[root@virtuozzo ~]# prlctl start ct2
+[root@vz ~]# prlctl start ct2
 Starting the CT...
 Failed to start the CT: PRL_ERR_VZCTL_OPERATION_FAILED
 Unable to add ip 192.168.0.161: Address already in use
@@ -754,25 +740,25 @@ Failed to start the Container
 
 Сначала нужно удалить старые IP-адреса:
 ```
-[root@virtuozzo ~]# prlctl set ct2 --ipdel 192.168.0.161/24
-[root@virtuozzo ~]# prlctl set ct2 --ipdel fe80::20c:29ff:fe01:fb08
+[root@vz ~]# prlctl set ct2 --ipdel 192.168.0.161/24
+[root@vz ~]# prlctl set ct2 --ipdel fe80::20c:29ff:fe01:fb08
 ```
 
 Затем добавить новые:
 ```
-[root@virtuozzo ~]# prlctl set ct2 --ipadd 192.168.0.162/24
-[root@virtuozzo ~]# prlctl set ct2 --ipadd fe80::20c:29ff:fe01:fb09
+[root@vz ~]# prlctl set ct2 --ipadd 192.168.0.162/24
+[root@vz ~]# prlctl set ct2 --ipadd fe80::20c:29ff:fe01:fb09
 ```
 
 Смена hostname:
 ```
-[root@virtuozzo ~]# prlctl set ct2 --hostname ct2.virtuozzo.localhost
+[root@vz ~]# prlctl set ct2 --hostname ct2.vz.localhost
 The CT has been successfully configured.
 ```
 
 После этого контейнер можно запустить:
 ```
-[root@virtuozzo ~]# prlctl start ct2
+[root@vz ~]# prlctl start ct2
 Starting the CT...
 The CT has been successfully started.
 ```
@@ -780,15 +766,15 @@ The CT has been successfully started.
 ### <a name='run-commands'></a>Запуск команд в контейнере с хост-ноды
 Пример запуска команды в контейнере:
 ```
-[root@virtuozzo ~]# prlctl exec ct1 cat /etc/issue
+[root@vz ~]# prlctl exec ct1 cat /etc/issue
 Debian GNU/Linux 8 \n \l
 ```
 
 Иногда бывает нужно выполнить команду на нескольких контейнерах.
 Для этого можно использовать конструкцию:
 ```
-[root@virtuozzo ~]# CMD="cat /etc/issue"
-[root@virtuozzo ~]# for i in `prlctl list -o name -H`; do echo "CT $i"; prlctl exec $i $CMD; done
+[root@vz ~]# CMD="cat /etc/issue"
+[root@vz ~]# for i in `prlctl list -o name -H`; do echo "CT $i"; prlctl exec $i $CMD; done
 CT ct1
 Debian GNU/Linux 8 \n \l
 
@@ -799,7 +785,7 @@ Debian GNU/Linux 8 \n \l
 ## [[⬆]](#toc) <a name='resources-ct'></a>Управление ресурсами контейнеров
 Доступные контейнеру ресурсы контролируются с помощью набора параметров управления ресурсами.
 Все эти параметры можно редактировать в файлах шаблонов, в каталоге `/etc/vz/conf/`.
-Их можно установить вручную, редактируя соответствующие конфиги или используя утилиты Virtuozzo.
+Их можно установить вручную, редактируя соответствующие конфиги или используя утилиты OpenVZ.
 
 Параметры контроля ресурсов контейнеров условно разделяют на группы:
 * дисковые квоты
@@ -809,13 +795,13 @@ Debian GNU/Linux 8 \n \l
 * сеть
 
 ### <a name='quota'></a>Дисковые квоты
-Администратор сервера Virtuozzo может устанавливать дисковые квоты, в терминах дискового пространства и количества inodes, число которых примерно равно количеству файлов.
+Администратор сервера OpenVZ может устанавливать дисковые квоты, в терминах дискового пространства и количества inodes, число которых примерно равно количеству файлов.
 Это первый уровень дисковой квоты.
 В дополнение к этому, администратор может использовать обычные утилиты внутри окружения, для настроек стандартных дисковых квот UNIX для пользователей и групп.
 
-Для использования дисковых квот, соответствующая директива должна присутствовать в конфигурационном файле Virtuozzo:
+Для использования дисковых квот, соответствующая директива должна присутствовать в конфигурационном файле OpenVZ:
 ```
-[root@virtuozzo ~]# grep DISK_QUOTA /etc/vz/vz.conf
+[root@vz ~]# grep DISK_QUOTA /etc/vz/vz.conf
 DISK_QUOTA=yes
 ```
 
@@ -845,14 +831,14 @@ QUOTATIME="600"
 
 Аналогично, можно установить эти параметры с помощью `vzctl`:
 ```
-[root@virtuozzo ~]# vzctl set ct1 --diskspace 5G:6G --save
+[root@vz ~]# vzctl set ct1 --diskspace 5G:6G --save
 Resize the image /vz/private/3d32522a-80af-4773-b9fa-ea4915dee4b3/root.hdd to 6291456K
 dumpe2fs 1.42.9 (28-Dec-2013)
-[root@virtuozzo ~]# vzctl set ct1 --diskinodes 10000:110000 --save
+[root@vz ~]# vzctl set ct1 --diskinodes 10000:110000 --save
 ```
 
 ### <a name='cpu'></a>Процессор
-Планировщик процессора в Virtuozzo также двухуровневый.
+Планировщик процессора в OpenVZ также двухуровневый.
 На первом уровне планировщик решает, какому контейнеру дать квант процессорного времени, базируясь на значении параметра `CPUUNITS` для контейнера.
 На втором уровне стандартный планировщик GNU/Linux решает, какому процессу в выбранном контейнере дать квант времени, базируясь на стандартных приоритетах процесса.
 
@@ -867,35 +853,35 @@ dumpe2fs 1.42.9 (28-Dec-2013)
 По умолчанию для каждого контейнера это значение равно 1000.
 То есть, если для контейнера `ct1` установить значение 2000, а для контейнера `ct2` оставить значение 1000, то при равных условиях контейнер `ct1` получит ровно в два раза больше процессорного времени.
 ```
-[root@virtuozzo ~]# prlctl set ct1 --cpuunits 2000
+[root@vz ~]# prlctl set ct1 --cpuunits 2000
 set cpuunits 2000
 ```
 
 Если система многопроцессорная, то установка параметра `CPUMASK` может пригодиться для привязки контейнера к конкретным процессорам.
 В случае восьмипроцессорной системы можно привязать контейнер к процессорам 0-3, 6, 7:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --cpumask 0-3,6,7
+[root@vz ~]# prlctl set ct1 --cpumask 0-3,6,7
 set cpu mask 0-3,6,7
 ```
 
 Параметр `CPULIMIT` указывает общий верхний лимит процессорного времени для всех ядер процессора:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --cpulimit 15
+[root@vz ~]# prlctl set ct1 --cpulimit 15
 set cpulimit 15%
 ```
 Для одноядерного процессора верхний лимит будет равен 100%, для двухядерного 200% и так далее.
 
 Существует также возможность задания `CPULIMIT` в абсолютных значениях (MHz):
 ```
-[root@virtuozzo ~]# prlctl set ct1 --cpulimit 600m
+[root@vz ~]# prlctl set ct1 --cpulimit 600m
 set cpulimit 600Mhz
 ```
 
 В параметре `CPUS` задается число доступных для контейнера процессорных ядер.
 Контейнер по умолчанию получает в использование все процессорные ядра:
 ```
-[root@virtuozzo ~]# CPUINFO="grep processor /proc/cpuinfo"
-[root@virtuozzo ~]# prlctl exec ct1 $CPUINFO
+[root@vz ~]# CPUINFO="grep processor /proc/cpuinfo"
+[root@vz ~]# prlctl exec ct1 $CPUINFO
 processor	: 0
 processor	: 1
 processor	: 2
@@ -904,16 +890,16 @@ processor	: 3
 
 Установим для контейнера лимит в 2 процессорных ядра:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --cpus 2
+[root@vz ~]# prlctl set ct1 --cpus 2
 set cpus(4): 2
-[root@virtuozzo ~]# prlctl exec ct1 $CPUINFO
+[root@vz ~]# prlctl exec ct1 $CPUINFO
 processor	: 0
 processor	: 1
 ```
 
 Для систем архитектуры NUMA существует возможность привязки контейнера к процессорам NUMA-нод:
 ```
-[root@virtuozzo ~]# vzctl set ct1 --nodemask 0 --save
+[root@vz ~]# vzctl set ct1 --nodemask 0 --save
 ```
 
 Аналогично все параметры можно вручную прописать в конфигурационный файл контейнера:
@@ -930,7 +916,7 @@ NODEMASK="0"
 При этом контейнер может потреблять больше времени, чем определено этой величиной, если нет другого конкурирующего с ним за время CPU сервера.
 
 ### <a name='io'></a>Операции ввода/вывода
-В Virtuozzo существует возможность управления дисковыми операциями ввода/вывода.
+В OpenVZ существует возможность управления дисковыми операциями ввода/вывода.
 Можно устанавливать значения таких параметров как:
 * `IOPRIO`
 * `IOLIMIT`
@@ -941,7 +927,7 @@ NODEMASK="0"
 
 Изменение значения параметра можно регулировать от 0 (максимальный приоритет) до 7:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --ioprio 6
+[root@vz ~]# prlctl set ct1 --ioprio 6
 set ioprio 6
 ```
 
@@ -950,7 +936,7 @@ set ioprio 6
 
 Установка значения в MB/s:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --iolimit 20
+[root@vz ~]# prlctl set ct1 --iolimit 20
 Set up iolimit: 20971520
 ```
 
@@ -966,7 +952,7 @@ Set up iolimit: 20971520
 
 Параметр `IOPSLIMT` позволяет установить численное значение операций ввода/вывода в секунду, например 300:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --iopslimit 300
+[root@vz ~]# prlctl set ct1 --iopslimit 300
 set IOPS limit 300
 ```
 
@@ -998,13 +984,13 @@ root@ct1:/# dd if=/dev/zero of=test bs=1048576 count=10
 ```
 
 ### <a name='memory'></a>Память
-В Virtuozzo используется управление памятью четвертого поколения с помощью VCMM.
+В OpenVZ используется управление памятью четвертого поколения с помощью VCMM.
 В прошлом же использовалось управление памятью с помощью:
 * VSwap (третье поколение)
 * SLM (второе поколение)
 * User Beancounters (первое поколение)
 
-С пользовательской стороны управление памятью с помощью VSwap и VCMM ничем не отличаются, однако с точки зрения реализации, VCMM уже находится в ванильном ядре и не требует патчей со стороны разработчиков Virtuozzo.
+С пользовательской стороны управление памятью с помощью VSwap и VCMM ничем не отличаются, однако с точки зрения реализации, VCMM уже находится в ванильном ядре и не требует патчей со стороны разработчиков OpenVZ.
 
 Ограничение физической памяти и swap задаются в конфигурационном файле контейнера параметрами `PHYSPAGES` и `SWAPPAGES`.
 Значения устанавливаются в блоках, например:
@@ -1016,7 +1002,7 @@ SWAPPAGES="262144:262144"
 
 С помощью `prlctl` значения параметров можно указывать в метрической системе:
 ```
-[root@virtuozzo ~]# prlctl set ct1 --memsize 1G --swappages 1G
+[root@vz ~]# prlctl set ct1 --memsize 1G --swappages 1G
 Set the memsize parameter to 1024Mb.
 Set swappages 262144
 ```
@@ -1034,7 +1020,7 @@ VM_OVERCOMMIT="2"
 
 Также возможна установка параметра с помощью `vzctl`:
 ```
-[root@virtuozzo ~]# vzctl set ct1 --vm_overcommit 2 --save
+[root@vz ~]# vzctl set ct1 --vm_overcommit 2 --save
 ```
 
 При использовании значения 2 для ранее упомянутого контейнера с 2048MB памяти, будет доступно (2048MB * 2 = 4096MB) памяти.
@@ -1043,7 +1029,7 @@ VM_OVERCOMMIT="2"
 ### <a name='monitoring'></a>Мониторинг ресурсов
 С помощью утилиты `vznetstat` можно увидеть входящий и исходящий трафик (в байтах и пакетах) для всех контейнеров:
 ```
-[root@virtuozzo ~]# vznetstat
+[root@vz ~]# vznetstat
 UUID                                 Net.Class  Input(bytes) Input(pkts)   Output(bytes) Output(pkts)
 0                                    0                244486        3024         1567749         2491
 54bc2ba6-b040-469e-9fda-b0eabda822d4 0                     0           0               0            0
@@ -1053,14 +1039,14 @@ UUID                                 Net.Class  Input(bytes) Input(pkts)   Outpu
 
 Для конкретного контейнера можно воспользоваться ключом `-v`:
 ```
-[root@virtuozzo ~]# vznetstat -v 3d32522a-80af-4773-b9fa-ea4915dee4b3
+[root@vz ~]# vznetstat -v 3d32522a-80af-4773-b9fa-ea4915dee4b3
 UUID                                 Net.Class     Input(bytes)  Input(pkts)  Output(bytes)  Output(pkts)
 3d32522a-80af-4773-b9fa-ea4915dee4b3         0          2925512        49396       49398885         49254
 ```
 
 Утилита `vzstat` позволяет узнать информацию по нагрузке на контейнер, занятым ресурсам и состоянии сети:
 ```
-[root@virtuozzo ~]# vzstat -p 3d32522a-80af-4773-b9fa-ea4915dee4b3 -t
+[root@vz ~]# vzstat -p 3d32522a-80af-4773-b9fa-ea4915dee4b3 -t
 loadavg     0 0 0
 CTNum       3
 procs       289 1 288 0 0 0 0
@@ -1086,19 +1072,19 @@ Disks stats     0.000 0.000
 
 `vzpid` позволяет узнать к какому контейнеру принадлежит процесс, это может быть полезно при просмотре списка процессов с хост-ноды и поиска "процесса-грузчика":
 ```
-[root@virtuozzo ~]# top
+[root@vz ~]# top
 ...
      PID     USER    PR  NI    VIRT    RES   SHR   S  %CPU  %MEM    TIME+   COMMAND
     5625       33    20   0  364432   6232  1284   S  26.2   0.6  0:03.20   apache2
 ...
-[root@virtuozzo ~]# vzpid 5625
+[root@vz ~]# vzpid 5625
  Pid                                    VEID      Name
 5625    3d32522a-80af-4773-b9fa-ea4915dee4b3   apache2
 ```
 
 Утилита `vzps` аналогична утилите `ps`, она позволяет вывести список процессов и их состояние для конкретного контейнера:
 ```
-[root@virtuozzo ~]# vzps aufx -E 3d32522a-80af-4773-b9fa-ea4915dee4b3
+[root@vz ~]# vzps aufx -E 3d32522a-80af-4773-b9fa-ea4915dee4b3
     USER     PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
        0    2432  0.0  0.0      0     0 ?        S    20:10   0:00 [kthreadd/3d3252]
        0    2433  0.0  0.0      0     0 ?        S    20:10   0:00  \_ [khelper]
@@ -1125,7 +1111,7 @@ Disks stats     0.000 0.000
 
 Утилита `vztop` теперь заменена алиасом на `htop` с отображением UUID контейнера, которому принадлежит процесс:
 ```
-[root@virtuozzo ~]# which vztop
+[root@vz ~]# which vztop
 alias vztop='htop -s CTID'
 	/usr/bin/htop
 ```
@@ -1143,21 +1129,21 @@ alias vztop='htop -s CTID'
 
 По умолчанию модуль TUN уже загружен в ядро, проверить это можно командой `lsmod`:
 ```
-[root@virtuozzo ~]# lsmod | grep tun
+[root@vz ~]# lsmod | grep ^tun
 tun                    27183  1
 ```
 
 Если все-таки модуль отключен, то включить его можно командой `modprobe`:
 ```
-[root@virtuozzo ~]# modprobe tun
+[root@vz ~]# modprobe tun
 ```
 
 Проброс модуля TUN в контейнер:
 ```
-[root@virtuozzo ~]# vzctl set ct3 --devnodes net/tun:rw --save
+[root@vz ~]# vzctl set ct3 --devnodes net/tun:rw --save
 Setting devices
 Create /etc/tmpfiles.d/device-tun.conf
-[root@virtuozzo ~]# prlctl exec ct3 ls -l /dev/net/tun
+[root@vz ~]# prlctl exec ct3 ls -l /dev/net/tun
 crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 ```
 
@@ -1174,29 +1160,29 @@ FUSE может пригодиться, например при монтиров
 
 Для того, чтобы для контейнеров был доступен FUSE, его необходимо включить на хост-ноде:
 ```
-[root@virtuozzo ~]# modprobe fuse
-[root@virtuozzo ~]# lsmod | grep fuse
+[root@vz ~]# modprobe fuse
+[root@vz ~]# lsmod | grep fuse
 fuse                  106371  0
 ```
 
 Также необходимо добавить модуль в автозагрузку, чтобы он подгружался автоматически при рестарте хост-ноды:
 ```
-[root@virtuozzo ~]# echo fuse >> /etc/modules-load.d/vz.conf
+[root@vz ~]# echo fuse >> /etc/modules-load.d/vz.conf
 ```
 
 Включение FUSE для контейнера:
 ```
-[root@virtuozzo ~]# vzctl set ct3 --devnodes fuse:rw --save
+[root@vz ~]# vzctl set ct3 --devnodes fuse:rw --save
 Setting devices
 Create /etc/tmpfiles.d/device-fuse.conf
-[root@virtuozzo ~]# prlctl exec ct3 ls -l /dev/fuse
+[root@vz ~]# prlctl exec ct3 ls -l /dev/fuse
 crw------- 1 root root 10, 229 Feb 10 13:42 /dev/fuse
 ```
 
 Пример подключения Яндекс.Диска в контейнере:
 ```
-[root@virtuozzo ~]# prlctl exec ct3 yum install fuse davfs2
-[root@virtuozzo ~]# prlctl exec ct3 mount -t davfs https://webdav.yandex.ru /mnt/
+[root@vz ~]# prlctl exec ct3 yum install fuse davfs2
+[root@vz ~]# prlctl exec ct3 mount -t davfs https://webdav.yandex.ru /mnt/
 Please enter the username to authenticate with server
 https://webdav.yandex.ru or hit enter for none.
   Username: user
@@ -1206,13 +1192,13 @@ https://webdav.yandex.ru or hit enter for none.
 ```
 
 ## [[⬆]](#toc) <a name='vm'></a>Работа с виртуальными машинами
-Помимо создания контейнеров, Virtuozzo 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
+Помимо создания контейнеров, OpenVZ 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
 Утилита `prlctl` имеет возможность создавать и управлять виртуальными машинами, помимо этого также доступно управление ВМ с помощью `libvirt`.
 
 ### <a name='create-vm'></a>Создание и запуск ВМ
 Создание виртуальной машины практически ничем не отличается от создания контейнера:
 ```
-[root@virtuozzo ~]# prlctl create vm1 --distribution rhel7 --vmtype vm
+[root@vz ~]# prlctl create vm1 --distribution rhel7 --vmtype vm
 Creating the virtual machine...
 Generate the VM configuration for rhel7.
 The VM has been successfully created.
@@ -1221,7 +1207,7 @@ The VM has been successfully created.
 Ключ `--distribution` указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
 Список всех официально поддерживаемых ОС:
 ```
-[root@virtuozzo ~]# prlctl create vm1 -d list
+[root@vz ~]# prlctl create vm1 -d list
 The following values are allowed:
 win-2000        	win-xp          	win-2003        	win-vista       
 win-2008        	win-7           	win-8           	win-2012        
@@ -1237,7 +1223,7 @@ chrome-1        	chrome
 
 Для каждой виртуальной машины в каталоге `/vz/vmprivate/` создается собственная директория с именем, соответствующим ее UUID:
 ```
-[root@virtuozzo ~]# ls /vz/vmprivate/1bdb465a-31e6-46c5-ad7b-947f6ff00208/
+[root@vz ~]# ls /vz/vmprivate/1bdb465a-31e6-46c5-ad7b-947f6ff00208/
 config.pvs  config.pvs.backup  harddisk.hdd
 ```
 
@@ -1255,7 +1241,7 @@ config.pvs  config.pvs.backup  harddisk.hdd
 
 Просмотр только что созданной ВМ:
 ```
-[root@virtuozzo ~]# prlctl list -a
+[root@vz ~]# prlctl list -a
 UUID                                    STATUS       IP_ADDR         T  NAME
 {6fe60288-fe50-49fe-a68d-7a8330837358}  stopped      192.168.0.161   CT ct1
 {2cdb07fd-a68a-4279-81c1-3d269460c2f7}  stopped      192.168.0.162   CT ct2
@@ -1264,36 +1250,36 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 
 По аналогии с контейнерами установим необходимые параметры для виртуальной машины:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --description "Backend for app"
-[root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
-[root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
-[root@virtuozzo ~]# prlctl set vm1 --device-set net0 --ipadd FE80:0:0:0:20C:29FF:FE01:FB07
-[root@virtuozzo ~]# prlctl set vm1 --nameserver 192.168.0.1,192.168.0.2
-[root@virtuozzo ~]# prlctl set vm1 --memsize 1024
-[root@virtuozzo ~]# prlctl set vm1 --cpus 2
-[root@virtuozzo ~]# prlctl set vm1 --cpuunits 1000
-[root@virtuozzo ~]# prlctl set vm1 --cpulimit 1024m
-[root@virtuozzo ~]# prlctl set vm1 --cpumask 0-1
-[root@virtuozzo ~]# prlctl set vm1 --ioprio 6
-[root@virtuozzo ~]# prlctl set vm1 --iolimit 0
-[root@virtuozzo ~]# prlctl set vm1 --iopslimit 0
+[root@vz ~]# prlctl set vm1 --description "Backend for app"
+[root@vz ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
+[root@vz ~]# prlctl set vm1 --device-set net0 --ipadd 192.168.0.180/24
+[root@vz ~]# prlctl set vm1 --device-set net0 --ipadd FE80:0:0:0:20C:29FF:FE01:FB07
+[root@vz ~]# prlctl set vm1 --nameserver 192.168.0.1,192.168.0.2
+[root@vz ~]# prlctl set vm1 --memsize 1024
+[root@vz ~]# prlctl set vm1 --cpus 2
+[root@vz ~]# prlctl set vm1 --cpuunits 1000
+[root@vz ~]# prlctl set vm1 --cpulimit 1024m
+[root@vz ~]# prlctl set vm1 --cpumask 0-1
+[root@vz ~]# prlctl set vm1 --ioprio 6
+[root@vz ~]# prlctl set vm1 --iolimit 0
+[root@vz ~]# prlctl set vm1 --iopslimit 0
 ```
 
 Ключ `--videosize` указывает размер выделяемой видеопамяти в MB для виртуальной машины.
 ```
-[root@virtuozzo ~]# prlctl set vm1 --videosize 64
+[root@vz ~]# prlctl set vm1 --videosize 64
 ```
 
-<!--Ключ `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
+Ключ `--autostart` аналогичен `--onboot` для контейнеров, который указывает возможность автостарта контейнера при старте хост-ноды.
 ```
-[root@virtuozzo ~]# prlctl set vm1 --autostart on
-```-->
+[root@vz ~]# prlctl set vm1 --autostart on
+```
 
 Параметры виртуальной машины установлены, ее можно запускать, однако для установки гостевой ОС необходим образ ОС.
 Для хранения образов ОС можно создать отдельный каталог и централизованно хранить все образы там:
 ```
-[root@virtuozzo ~]# mkdir /vz/vmprivate/images/
-[root@virtuozzo ~]# ls /vz/vmprivate/images/ -1
+[root@vz ~]# mkdir /vz/vmprivate/images/
+[root@vz ~]# ls /vz/vmprivate/images/ -1
 CentOS-7-x86_64-Minimal-1503-01.iso
 9200.16384.WIN8_RTM.120725-1247_X64FRE_SERVER_EVAL_RU-RU-HRM_SSS_X64FREE_RU-RU_DV5.ISO
 ```
@@ -1302,17 +1288,17 @@ CentOS-7-x86_64-Minimal-1503-01.iso
 
 Установка ВМ с образа `CentOS-7-x86_64-Minimal-1503-01.iso`:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --device-set cdrom1 --image "/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso" --iface scsi --position 1
+[root@vz ~]# prlctl set vm1 --device-set cdrom1 --image "/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso" --iface scsi --position 1
 ```
 
 Изменение размера диска до 8G:
 ```
-[root@virtuozzo ~]# prl_disk_tool resize --hdd /vz/vmprivate/vm1.pvm/harddisk.hdd --size 8G
+[root@vz ~]# prl_disk_tool resize --hdd /vz/vmprivate/vm1.pvm/harddisk.hdd --size 8G
 ```
 
 Просмотр конфигурации виртуальной машины перед ее запуском:
 ```
-[root@virtuozzo ~]# prlctl list vm1 -i | grep Hardware -A9
+[root@vz ~]# prlctl list vm1 -i | grep Hardware -A9
 Hardware:
   cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-1
   memory 1024Mb
@@ -1328,7 +1314,7 @@ Hardware:
 ### <a name='vnc'></a>VNC
 Подключение VNC для ВМ:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --vnc-mode manual --vnc-port 5901 --vnc-passwd Oiwaiqud
+[root@vz ~]# prlctl set vm1 --vnc-mode manual --vnc-port 5901 --vnc-passwd Oiwaiqud
 Configure VNC: Remote display: mode=manual port=5901
 ```
 
@@ -1339,7 +1325,7 @@ Configure VNC: Remote display: mode=manual port=5901
 
 Запуск виртуальной машины:
 ```
-[root@virtuozzo ~]# prlctl start vm1
+[root@vz ~]# prlctl start vm1
 Starting the VM...
 The VM has been successfully started.
 ```
@@ -1368,21 +1354,21 @@ root@192.168.0.180's password: eihaixahghath7A
 ```
 
 ### <a name='guest-tools'></a>Дополнения гостевой ОС
-Virtuozzo поддерживает Virtuozzo Guest Tools (дополнения гостевой ОС), которые позволяют выполнять некоторые операции в ВМ такие как:
+OpenVZ поддерживает Virtuozzo Guest Tools (дополнения гостевой ОС), которые позволяют выполнять некоторые операции в ВМ такие как:
 * запуск команд в ВМ с помощью `prlctl exec`
 * установка паролей для пользователей с помощью `prlctl set --userpasswd`
 * управление сетевыми настройками в ВМ
 
 Установка дополнений для `vm1` с хост-ноды:
 ```
-[root@virtuozzo ~]# prlctl installtools vm1
+[root@vz ~]# prlctl installtools vm1
 Installing...
 The Parallels tools have been successfully installed.
 ```
 
 Далее необходимо войти в ВМ, например по SSH и запустить скрипт установки дополнений:
 ```
-[root@virtuozzo ~]# ssh root@192.168.0.180
+[root@vz ~]# ssh root@192.168.0.180
 root@192.168.0.180's password: eihaixahghath7A
 [root@vm1 ~]# mount /dev/cdrom /mnt/
 mount: /dev/sr0 is write-protected, mounting read-only
@@ -1401,11 +1387,11 @@ Done!
 
 Проверка корректности установки дополнений с хост-ноды:
 ```
-[root@virtuozzo ~]# prlctl exec vm1 uname -a
+[root@vz ~]# prlctl exec vm1 uname -a
 Linux vm1.tld 3.10.0-229.el7.x86_64 #1 SMP Fri Mar 6 11:36:42 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
-[root@virtuozzo ~]# prlctl set vm1 --userpasswd testuser:iel9cophoo2Aisa
+[root@vz ~]# prlctl set vm1 --userpasswd testuser:iel9cophoo2Aisa
 Authentication tokens updated successfully.
-[root@virtuozzo ~]# prlctl exec vm1 id testuser
+[root@vz ~]# prlctl exec vm1 id testuser
 uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 ```
 
@@ -1416,7 +1402,7 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 
 Автоматическое обновление дополнений гостевой ОС в ВМ:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --tools-autoupdate on
+[root@vz ~]# prlctl set vm1 --tools-autoupdate on
 ```
 
 ### <a name='pause-vm'></a>Приостановка виртуальных машин
@@ -1439,12 +1425,12 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 
 Вдобавок к этим командам существует возможность приостанавливать ВМ:
 ```
-[root@virtuozzo ~]# prlctl pause vm1
+[root@vz ~]# prlctl pause vm1
 Pause the VM...
 The VM has been successfully paused.
-[root@virtuozzo ~]# prlctl status vm1
+[root@vz ~]# prlctl status vm1
 VM vm1 exist paused
-[root@virtuozzo ~]# prlctl start vm1
+[root@vz ~]# prlctl start vm1
 Starting the VM...
 The VM has been successfully started.
 ```
@@ -1454,21 +1440,21 @@ The VM has been successfully started.
 
 Пример создания шаблона `config-1024MB-centos7`, основанный на ранее настроенной `vm1`:
 ```
-[root@virtuozzo ~]# mkdir /etc/parallels/samples
-[root@virtuozzo ~]# cp /vz/vmprivate/vm1.pvm/config.pvs /etc/parallels/samples/config-1024MB-centos7.pvs
-[root@virtuozzo ~]# prlctl create vm3
+[root@vz ~]# mkdir /etc/parallels/samples
+[root@vz ~]# cp /vz/vmprivate/vm1.pvm/config.pvs /etc/parallels/samples/config-1024MB-centos7.pvs
+[root@vz ~]# prlctl create vm3
 Creating the virtual machine...
 Generate the VM configuration for win-2008.
 The VM has been successfully created.
-[root@virtuozzo ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
+[root@vz ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
 Boot order: hdd0 cdrom0
   cpu cpus=1 VT-x accl=high mode=32 ioprio=4 iolimit='0'
   memory 512Mb
   video 32Mb 3d acceleration=highest vertical sync=yes
   memory_guarantee auto
   hdd0 (+) scsi:0 image='/vz/vmprivate/vm3.pvm/harddisk.hdd' type='expanded' 65536Mb subtype=virtio-scsi
-[root@virtuozzo ~]# prlctl set vm3 --applyconfig config-1024MB-centos7
-[root@virtuozzo ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
+[root@vz ~]# prlctl set vm3 --applyconfig config-1024MB-centos7
+[root@vz ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
 Boot order: hdd0 cdrom0
   cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=4 iolimit='0' mask=0-1
   memory 1024Mb
@@ -1487,13 +1473,13 @@ Boot order: hdd0 cdrom0
 
 Добавление дополнительного HDD для виртуальной машины с Linux:
 ```
-[root@virtuozzo ~]# prlctl list vm1 -i | grep hdd
+[root@vz ~]# prlctl list vm1 -i | grep hdd
 Boot order: hdd0 cdrom1
   hdd0 (+) scsi:0 image='/vz/vmprivate/vm1.pvm/harddisk.hdd' type='expanded' 8192Mb subtype=virtio-scsi
-[root@virtuozzo ~]# prlctl set vm1 --device-add hdd --size 2048 --iface scsi
+[root@vz ~]# prlctl set vm1 --device-add hdd --size 2048 --iface scsi
 Creating hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
 Created hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
-[root@virtuozzo ~]# prlctl list vm1 -i | grep hdd
+[root@vz ~]# prlctl list vm1 -i | grep hdd
 Boot order: hdd0 cdrom1 hdd1
   hdd0 (+) scsi:0 image='/vz/vmprivate/vm1.pvm/harddisk.hdd' type='expanded' 8192Mb subtype=virtio-scsi
   hdd1 (+) scsi:2 image='/vz/vmprivate/vm1.pvm/harddisk1.hdd' type='expanded' 2048Mb subtype=virtio-scsi
@@ -1501,7 +1487,7 @@ Boot order: hdd0 cdrom1 hdd1
 
 После того как диск добавлен, нужно создать на нем раздел и отформатировать его:
 ```
-[root@virtuozzo ~]# prlctl enter vm1
+[root@vz ~]# prlctl enter vm1
 [root@vm1 /]# lsblk | grep sd
 sda               8:0    0    8G  0 disk
 ├─sda1            8:1    0  500M  0 part /boot
@@ -1524,10 +1510,10 @@ Command (m for help): w
 
 С помощью ключа `--device-disconnect` можно отключить устройство от ВМ:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --device-disconnect cdrom1
+[root@vz ~]# prlctl set vm1 --device-disconnect cdrom1
 Disconnect device: cdrom1
 The device successfully disconnected
-[root@virtuozzo ~]# prlctl list vm1 -i | grep cdrom1
+[root@vz ~]# prlctl list vm1 -i | grep cdrom1
 Boot order: hdd0 cdrom1 hdd1
   cdrom1 (+) scsi:1 image='/vz/vmprivate/images/CentOS-7-x86_64-Minimal-1503-01.iso' state=disconnected subtype=virtio-scsi
 ```
@@ -1536,31 +1522,31 @@ Boot order: hdd0 cdrom1 hdd1
 
 Чтобы полностью удалить устройство, нужно использовать ключ `--device-del`:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --device-del usb
+[root@vz ~]# prlctl set vm1 --device-del usb
 Remove the usb device.
-[root@virtuozzo ~]# prlctl set vm1 --device-del cdrom1
+[root@vz ~]# prlctl set vm1 --device-del cdrom1
 Remove the cdrom1 device.
-[root@virtuozzo ~]# prlctl list vm1 -i | egrep "cdrom1|usb"
+[root@vz ~]# prlctl list vm1 -i | egrep "cdrom1|usb"
 ```
 
 При удалении HDD из виртуальной машины можно сохранить сам виртуальный диск, для этого используется ключ `--detach-only`, по умолчанию диск удаляется, что является умолчанием ключа `--destroy-image`.
 
 Изменение приоритета загрузки устройств:
 ```
-[root@virtuozzo ~]# prlctl list vm1 -i | grep "Boot order"
+[root@vz ~]# prlctl list vm1 -i | grep "Boot order"
 Boot order: hdd0 hdd1
-[root@virtuozzo ~]# prlctl set vm1 --device-bootorder "hdd1 hdd0"
-[root@virtuozzo ~]# prlctl list vm1 -i | grep "Boot order"
+[root@vz ~]# prlctl set vm1 --device-bootorder "hdd1 hdd0"
+[root@vz ~]# prlctl list vm1 -i | grep "Boot order"
 Boot order: hdd1 hdd0
 ```
 
 Пример добавления дополнительного сетевого устройства:
 ```
-[root@virtuozzo ~]# prlctl set vm1 --device-add net --network Bridged  --mac auto --ipadd 192.168.0.181 --gw 192.168.122.1 --nameserver 192.168.0.1 --adapter-type virtio
+[root@vz ~]# prlctl set vm1 --device-add net --network Bridged  --mac auto --ipadd 192.168.0.181 --gw 192.168.122.1 --nameserver 192.168.0.1 --adapter-type virtio
 Enable automatic reconfiguration for this network adapter.
 Creating net1 (+) dev='' ifname='eth1' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
 Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
-[root@virtuozzo ~]# prlctl list vm1 -i | grep -i net
+[root@vz ~]# prlctl list vm1 -i | grep -i net
   net0 (+) dev='vme4292dc5f' network='Bridged' mac=001C4292DC5F card=virtio ips='192.168.0.180/255.255.255.0 FE80:0:0:0:20C:29FF:FE01:FB07/64 '
   net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virtio ips='192.168.0.181/255.255.255.0 ' gw='192.168.0.1'
 ```
@@ -1572,20 +1558,20 @@ Created net1 (+) dev='vme42afdc9b' network='Bridged' mac=001C42AFDC9B card=virti
 
 Для добавления оперативной памяти "налету" необходимо установить значение ключа `--mem-hotplug` в `on`:
 ```
-[root@virtuozzo ~]# prlctl list vm1 -i | grep "memory "
+[root@vz ~]# prlctl list vm1 -i | grep "memory "
   memory 1024Mb
-[root@virtuozzo ~]# prlctl set vm1 --mem-hotplug on
+[root@vz ~]# prlctl set vm1 --mem-hotplug on
 set mem hotplug: 1
 ```
 
 После установки параметра нужно единожды перезагрузить виртуальную машину и затем изменять количество памяти:
 ```
-[root@virtuozzo ~]# prlctl restart vm1
+[root@vz ~]# prlctl restart vm1
 Restarting the VM...
 The VM has been successfully restarted.
-[root@virtuozzo ~]# prlctl set vm1 --memsize 1536M
+[root@vz ~]# prlctl set vm1 --memsize 1536M
 Set the memsize parameter to 1536Mb.
-[root@virtuozzo ~]# prlctl list vm1 -i | grep "memory "
+[root@vz ~]# prlctl list vm1 -i | grep "memory "
   memory 1536Mb hotplug
 ```
 
@@ -1596,22 +1582,22 @@ Set the memsize parameter to 1536Mb.
 
 Включение CPU hotplug происходит по аналогии с MEM hotplug:
 ```
-[root@virtuozzo ~]# prlctl list vm1 -i | grep cpu
+[root@vz ~]# prlctl list vm1 -i | grep cpu
   cpu cpus=2 VT-x accl=high mode=32 cpuunits=1000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-1
-[root@virtuozzo ~]# prlctl set vm1 --cpu-hotplug on
+[root@vz ~]# prlctl set vm1 --cpu-hotplug on
   set cpu hotplug: 1
 ```
 
 Перезагрузка виртуальной машины и проверка ресурсов:
 ```
-[root@virtuozzo ~]# prlctl restart vm1
+[root@vz ~]# prlctl restart vm1
 Restarting the VM...
 The VM has been successfully restarted.
-[root@virtuozzo ~]# prlctl set vm1 --cpuunits 2000 --cpus 3 --cpumask 0-2
+[root@vz ~]# prlctl set vm1 --cpuunits 2000 --cpus 3 --cpumask 0-2
 set cpus(4): 3
 set cpuunits 2000
 set cpu mask 0-2
-[root@virtuozzo ~]# prlctl list vm1 -i | grep cpu
+[root@vz ~]# prlctl list vm1 -i | grep cpu
   cpu cpus=3 VT-x hotplug accl=high mode=32 cpuunits=2000 cpulimit=1024Mhz ioprio=6 iolimit='0' mask=0-2
 ```
 
@@ -1626,22 +1612,22 @@ KSM (Kernel Same-Page Merging) — технология ядра Linux, кото
 KSM обеспечивает системам виртуализации возможность перезакладки ресурсов оперативной памяти (memory overcommitment).
 В условиях достаточно однородных экземпляров гостевых операционных систем возможен значительный эффект, в частности, экспериментальная реализация KSM от Red Hat показала, что 52 виртуальных экземпляра Windows XP с выделенными 1GB памяти, могут работать на хост-ноде с 16GB оперативной памяти.
 
-Для включения KSM в Virtuozzo необходимо запустить сервисы `ksm` и `ksmtuned`:
+Для включения KSM в OpenVZ необходимо запустить сервисы `ksm` и `ksmtuned`:
 ```
-[root@virtuozzo ~]# systemctl start ksm
-[root@virtuozzo ~]# systemctl start ksmtuned
-[root@virtuozzo ~]# systemctl enable ksm
-[root@virtuozzo ~]# systemctl enable ksmtuned
+[root@vz ~]# systemctl start ksm
+[root@vz ~]# systemctl start ksmtuned
+[root@vz ~]# systemctl enable ksm
+[root@vz ~]# systemctl enable ksmtuned
 ```
 
 Работоспособность KSM можно проверить на примере общих страниц в памяти (shared memory pages):
 ```
-[root@virtuozzo ~]# cat /sys/kernel/mm/ksm/pages_sharing
+[root@vz ~]# cat /sys/kernel/mm/ksm/pages_sharing
 120990
 ```
 
 ## [[⬆]](#toc) <a name='migration'></a>Миграция контейнеров и виртуальных машин
-В Virtuozzo поддерживается "живая" миграция контейнеров и виртуальных машин с использованием CRIU и P.Haul.
+В OpenVZ поддерживается "живая" миграция контейнеров и виртуальных машин с использованием CRIU и P.Haul.
 
 Пример миграции контейнера `ct3` с хост-ноды `vz-source` на `vz-dest` (192.168.0.180).
 
@@ -1667,7 +1653,7 @@ UUID                                    STATUS       IP_ADDR         T  NAME
 ## [[⬆]](#toc) <a name='extra-info'></a>Расширенная информация о контейнерах и ВМ
 Подробную информацию о контейнере или виртуальной машине можно получить с помощью параметра `list` с ключом `-i` (`--info`):
 ```
-[root@virtuozzo ~]# prlctl list -i ct4
+[root@vz ~]# prlctl list -i ct4
 INFO
 ID: {22c418d7-948b-456e-9d84-d59ab5ead661}
 EnvID: 22c418d7-948b-456e-9d84-d59ab5ead661
@@ -1709,23 +1695,23 @@ Auto compress virtual disks: on
 Nested virtualization: off
 PMU virtualization: off
 Offline management: (-)
-Hostname: ct4.virtuozzo.localhost
+Hostname: ct4.vz.localhost
 DNS Servers: 192.168.0.1 192.168.0.2
 Search Domains: 192.168.0.1
 ```
 
 Существует также возможность просмотра дополнительной информации о контейнерах:
 ```
-[root@virtuozzo ~]# prlctl list -o type,status,name,hostname,dist,ip
-T  STATUS       NAME     HOSTNAME                    DIST         IP_ADDR
-CT running      ct2      ct2.virtuozzo.localhost     debian       192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
-CT running      ct1      ct1.virtuozzo.localhost     debian       192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
-VM stopped      vm1      vm1.virtuozzo.localhost     rhel7        192.168.0.163 FE80:0:0:0:20C:29FF:FE01:FB07
+[root@vz ~]# prlctl list -o type,status,name,hostname,dist,ip
+T  STATUS       NAME     HOSTNAME             DIST         IP_ADDR
+CT running      ct2      ct2.vz.localhost     debian       192.168.0.162 FE80:0:0:0:20C:29FF:FE01:FB09
+CT running      ct1      ct1.vz.localhost     debian       192.168.0.161 FE80:0:0:0:20C:29FF:FE01:FB08
+VM stopped      vm1      vm1.vz.localhost     rhel7        192.168.0.163 FE80:0:0:0:20C:29FF:FE01:FB07
 ```
 
 Список всех доступных полей:
 ```
-[root@virtuozzo ~]# prlctl list -L
+[root@vz ~]# prlctl list -L
 uuid                 UUID
 envid                ENVID
 status               STATUS
@@ -1754,7 +1740,7 @@ ha_prio              HA_PRIO
 * если работа хост-ноды замедлилась, для анализа нагрузки можно воспользоваться утилитами `vzps`, `vztop`, `iotop`, `atop`
 * для обнаружения сетевых проблем можно воспользоваться утилитами `ping`, `traceroute`, `nmap`, `mtr`, `tcpdump`, `nc`, `iftop`, `netstat`, `ss`
 * `strace` будет верным помощником для отслеживания системных вызовов
-* используйте RAID, LVM
+* используйте RAID
 * для экстренных ситуаций, когда могут быть проблемы с сетью необходимо всегда иметь под рукой IPMI или KVM-доступ
 * не перезагружайте хост-ноду без выяснения обстоятельств неполадок, делайте это только в самых крайних случаях
 * следите за временем на сервере, используйте для синхронизации NTP на хост-ноде
@@ -1785,7 +1771,7 @@ ha_prio              HA_PRIO
 * https://bugs.openvz.org/secure/Dashboard.jspa
 
 ## [[⬆]](#toc) <a name='todo'></a>TODO
-* управление сетью в Virtuozzo (veth/vlan/shaping)
+* управление сетью в OpenVZ (veth/vlan/shaping)
 * снапшоты
 * клонирование шаблонов
 * проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
@@ -1793,8 +1779,6 @@ ha_prio              HA_PRIO
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
 * создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
 * создание шаблона гостевой ОС на основе vztt/vzmktmpl
-* измененная схема архитектуры Virtuozzo (старая схема тут: https://raw.githubusercontent.com/Amet13/virtuozzo-tutorial/master/images/vz7-architect.png)
-* не работает `autostart`, `autostart-delay` для ВМ (https://bugs.openvz.org/browse/OVZ-6715)
 * не работает `prlctl capture`
 * `vztop`/`vzps`/`vzstat`/`vznetstat` работают только с UUID (https://bugs.openvz.org/browse/OVZ-6504)
 
