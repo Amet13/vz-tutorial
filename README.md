@@ -37,7 +37,8 @@
   - [FUSE](#fuse)
   - [NFS](#nfs)
 10. [SimFS и ploop](#simfs-ploop)
-11. [Работа с виртуальными машинами](#vm)
+12. [Управление снапшотами](#snapshots)
+13. [Работа с виртуальными машинами](#vm)
   - [Создание и запуск ВМ](#create-vm)
   - [VNC](#vnc)
   - [Дополнения гостевой ОС](#guest-tools)
@@ -46,12 +47,12 @@
   - [Добавление и удаление устройств в ВМ](#devices-vm)
   - [Горячее подключение CPU и RAM](#hotplug-vm)
   - [Оптимизация виртуальных машин с помощью KSM](#ksm)
-12. [Миграция контейнеров и виртуальных машин](#migration)
-13. [Расширенная информация о контейнерах и ВМ](#extra-info)
-14. [Рекомендации системному администратору](#recommendations)
-15. [Ссылки](#links)
-16. [TODO](#todo)
-17. [Лицензия](#license)
+14. [Миграция контейнеров и виртуальных машин](#migration)
+15. [Расширенная информация о контейнерах и ВМ](#extra-info)
+16. [Рекомендации системному администратору](#recommendations)
+17. [Ссылки](#links)
+18. [TODO](#todo)
+19. [Лицензия](#license)
 
 ## [[⬆]](#toc) <a name='intro'></a>Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированных от аппаратной реализации, и обеспечивающих изоляцию вычислительных процессов.
@@ -1274,6 +1275,69 @@ bin/          dev/   home/  lib64/   mnt/    proc/   run/  srv/   tmp/  var/
 
 Для отключения SimFS нужно в файле `/etc/vz/vz.conf` установить переменную `VEFSTYPE="ext4"`.
 
+## [[⬆]](#toc) <a name='snapshots'></a>Управление снапшотами
+Перед созданием снапшота рекомендуется закончить установку ПО, загрузку файлов и запись на внешние устройства.
+Также рекомендуется отменить транзакции во внешние БД.
+
+Создание снапшота контейнера:
+```
+[root@vz ~]# prlctl snapshot ct2 -n FreshCentOS7 -d "Fresh CentOS7 container"
+Creating the snapshot...
+The snapshot with id {aa9649d9-9ed1-408a-9463-36ce0cea6ba7} has been successfully created.
+```
+где параметр `-n` указываем имя снапшота, `-d` – его описание, описание снапшота всегда указывается в кавычках.
+
+Снапшоты сохраняются в каталог `/vz/private/$UUID/dump/`:
+```
+[root@vz ~]# ls /vz/private/49465252-b780-45f1-9784-538166be2367/dump/
+{aa9649d9-9ed1-408a-9463-36ce0cea6ba7}  {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}.ve.conf
+```
+
+Подробная информация о снапшоте:
+```
+[root@vz ~]# prlctl snapshot-list ct2 -i {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
+ID: {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
+Name: FreshCentOS7
+Date: 2016-07-31 01:44:43
+State: poweroff
+Description: Fresh CentOS7 container
+```
+
+Список доступных снапшотов для контейнера:
+```
+[root@vz ~]# prlctl snapshot-list ct2
+PARENT_SNAPSHOT_ID                      SNAPSHOT_ID
+                                        {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
+{aa9649d9-9ed1-408a-9463-36ce0cea6ba7} *{e76f0a0d-aa8e-491f-a720-daa65dfb911a}
+```
+
+Символ `*` указывает текущую использующуюся ветку снапшота:
+```
+[root@vz ~]# prlctl snapshot-list ct2 -t
+_{aa9649d9-9ed1-408a-9463-36ce0cea6ba7}*{e76f0a0d-aa8e-491f-a720-daa65dfb911a}
+```
+
+Для проверки работы снапшота создадим файл, а потом восстановимся из снапшота, в котором этого файла нет:
+```
+[root@vz ~]# prlctl exec ct2 touch /root/file.txt
+[root@vz ~]# prlctl exec ct2 ls /root/file.txt
+/root/file.txt
+[root@vz ~]# prlctl snapshot-switch ct2 --id {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
+Switch to the snapshot...
+The CT has been successfully switched.
+[root@vz ~]# prlctl exec ct2 ls /root/file.txt
+ls: cannot access /root/file.txt: No such file or directory
+```
+
+Удаление снапшота:
+```
+[root@vz ~]# prlctl snapshot-delete ct2 --id {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
+Delete the snapshot...
+The snapshot has been successfully deleted.
+```
+
+При удалении родительского снапшота, снапшоты-потомки не удаляются.
+
 ## [[⬆]](#toc) <a name='vm'></a>Работа с виртуальными машинами
 Помимо создания контейнеров, OpenVZ 7 поддерживает создание и управление виртуальными машинами на базе QEMU/KVM.
 Утилита `prlctl` имеет возможность создавать и управлять виртуальными машинами, помимо этого также доступно управление ВМ с помощью `libvirt`.
@@ -1856,7 +1920,6 @@ ha_prio              HA_PRIO
 
 ## [[⬆]](#toc) <a name='todo'></a>TODO
 * управление сетью в OpenVZ (veth/vlan/shaping)
-* снапшоты
 * проброс устройств (pptp/usb/vlan) (https://habrahabr.ru/post/210460/)
 * `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
