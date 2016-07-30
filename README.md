@@ -12,9 +12,10 @@
 4. [Установка и подготовительные действия](#install)
   - [Установка OpenVZ с помощью ISO-образа (bare-metal installation)](#bare-metal)
   - [Подготовительные действия](#prepare)
-5. [Управление шаблонами контейнеров](#templates-ct)
+5. [Управление шаблонами](#templates)
   - [Шаблоны гостевых ОС](#guest-os)
   - [Шаблоны приложений](#app-templates)
+  - [Шаблоны контейнеров и виртуальных машин](#templates-сt-vm)
 6. [Создание и настройка контейнеров](#ct)
   - [Конфигурационные файлы](#configs)
   - [Создание контейнера](#create-ct)
@@ -302,7 +303,7 @@ Password: пароль_пользователя_root
 [root@vz ~]# ntpdate -q 0.ru.pool.ntp.org 1.ru.pool.ntp.org
 ```
 
-## [[⬆]](#toc) <a name='templates-ct'></a>Управление шаблонами контейнеров
+## [[⬆]](#toc) <a name='templates'></a>Управление шаблонами
 ### <a name='guest-os'></a>Шаблоны гостевых ОС
 Шаблоны гостевых ОС используются для создания контейнеров.
 
@@ -318,7 +319,7 @@ debian-8.0-x86_64                  :Debian 8.0 (for AMD64/Intel EM64T) Virtuozzo
 debian-8.0-x86_64-minimal          :Debian 8.0 minimal (for AMD64/Intel EM64T) Virtuozzo Template
 ```
 
-Доступные удаленно шаблоны:
+Удаленно доступные шаблоны:
 ```
 [root@vz ~]# vzpkg list --available --with-summary
 debian-7.0-x86_64                  
@@ -415,6 +416,38 @@ Removed:
 [root@vz ~]# vzpkg list ct5
 centos-7-x86_64                    2016-02-09 17:00:57
 centos-7-x86_64      jre           2016-02-09 20:03:50
+```
+
+### <a name='templates-сt-vm'></a>Шаблоны контейнеров и виртуальных машин
+Помимо шаблонов гостевых ОС и шаблонов приложений, существует также возможность создания контейнера или виртуальной машины на основе других контейнеров или ВМ.
+
+Пример создания шаблона на основе контейнера `ct2` с установленным веб-сервером nginx:
+```
+[root@vz ~]# prlctl clone ct2 --name CentOS7+nginx --template
+Clone the ct2 CT to template CentOS7+nginx...
+The CT has been successfully cloned.
+```
+
+Просмотр списка доступных шаблонов:
+```
+[root@vz ~]# prlctl list -t
+UUID                                    DIST            T  NAME
+{c28c09dd-a379-43dd-aae9-3e62f972476a}  centos7         CT CentOS7+nginx
+```
+
+Создадим новый контейнер на основе шаблона `CentOS7+nginx`:
+```
+[root@vz ~]# prlctl create ct3 --ostemplate CentOS7+nginx
+Creating the VM on the basis of the CentOS7+nginx template...
+Clone the CentOS7+nginx CT to CT ct3...
+The CT has been successfully cloned.
+```
+
+Удаление шаблона:
+```
+[root@vz ~]# prlctl delete CentOS7+nginx
+Removing the CT...
+The CT has been successfully removed.
 ```
 
 ## [[⬆]](#toc) <a name='ct'></a>Создание и настройка контейнеров
@@ -1472,6 +1505,7 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 * `mount`
 * `umount`
 * `move`
+* `snapshot`
 
 Вдобавок к этим командам существует возможность приостанавливать ВМ:
 ```
@@ -1823,7 +1857,6 @@ ha_prio              HA_PRIO
 ## [[⬆]](#toc) <a name='todo'></a>TODO
 * управление сетью в OpenVZ (veth/vlan/shaping)
 * снапшоты
-* клонирование шаблонов
 * проброс устройств (pptp/usb/vlan) (https://habrahabr.ru/post/210460/)
 * `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
