@@ -34,6 +34,7 @@
 9. [Проброс устройств в контейнеры](#forward-dev-ct)
   - [TUN/TAP](#tun-tap)
   - [FUSE](#fuse)
+  - [NFS](#nfs)
 10. [Работа с виртуальными машинами](#vm)
   - [Создание и запуск ВМ](#create-vm)
   - [VNC](#vnc)
@@ -529,7 +530,7 @@ eVjfsDkTE63s5Nw
 
 Или воспользоваться утилитой `pwgen`:
 ```
-[root@vz ~]# yum localinstall http://dl.fedoraproject.org/pub/epel/7/x86_64/p/pwgen-2.07-1.el7.x86_64.rpm
+[root@vz ~]# yum localinstall https://dl.fedoraproject.org/pub/epel/7/x86_64/p/pwgen-2.07-1.el7.x86_64.rpm
 [root@vz ~]# pwgen -s 15 1
 esxrcH7dyoA46LY
 ```
@@ -1106,7 +1107,6 @@ Disks stats     0.000 0.000
        0    4074  0.0  0.2  36144  2388 ?        Ss   20:10   0:00  \_ /usr/lib/postfix/master
      105    4081  0.0  0.2  38208  2316 ?        S    20:10   0:00      \_ pickup -l -t unix -u -c
      105    4082  0.0  0.2  38256  2336 ?        S    20:10   0:00      \_ qmgr -l -t unix -u
-
 ```
 
 Утилита `vztop` теперь заменена алиасом на `htop` с отображением UUID контейнера, которому принадлежит процесс:
@@ -1150,9 +1150,8 @@ crw------- 1 root root 10, 200 Feb 10 13:12 /dev/net/tun
 На этом настройка TUN окончена.
 Далее необходимо установить ПО для работы с VPN.
 Например одну из программ:
-* [OpenVPN](http://openvpn.net)
-* [tinc](http://tinc-vpn.org)
-* [VTun](http://vtun.sourceforge.net)
+* [OpenVPN](https://openvpn.net)
+* [tinc](https://tinc-vpn.org)
 
 ### <a name='fuse'></a>FUSE
 FUSE (Filesystem in Userspace) — модуль ядра Linux, позволяющий создавать виртуальные файловые системы.
@@ -1189,6 +1188,25 @@ https://webdav.yandex.ru or hit enter for none.
 Please enter the password to authenticate user username with server
 https://webdav.yandex.ru or hit enter for none.
   Password:  pass
+```
+
+### <a name='nfs'></a>NFS
+NFS (Network File System) – это сетевая файловая система, позволяющая пользователям обращаться к файлам и каталогам, расположенным на удаленных компьютерах, как если бы эти файлы и каталоги были локальными.
+
+По умолчанию модуль ядра NFS уже включен в OpenVZ, поэтому нужно всего лишь пробросить устройство в контейнер.
+Перед пробросом модуля контейнер нужно остановить:
+```
+[root@vz ~]# prlctl stop ct1
+[root@vz ~]# prlctl set ct1 --features nfsd:on
+set features: nfsd:on
+```
+
+А после – включить и проверить работоспособность сервиса `nfs`:
+```
+[root@vz ~]# prlctl start ct1
+[root@vz ~]# prlctl exec ct1 systemctl start nfs
+[root@vz ~]# prlctl exec ct1 systemctl is-active nfs
+active
 ```
 
 ## [[⬆]](#toc) <a name='vm'></a>Работа с виртуальными машинами
@@ -1774,7 +1792,7 @@ ha_prio              HA_PRIO
 * управление сетью в OpenVZ (veth/vlan/shaping)
 * снапшоты
 * клонирование шаблонов
-* проброс устройств (nfs/pptp/usb/vlan) (http://habrahabr.ru/post/210460/)
+* проброс устройств (pptp/usb/vlan) (https://habrahabr.ru/post/210460/)
 * `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
 * создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
