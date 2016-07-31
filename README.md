@@ -419,6 +419,47 @@ centos-7-x86_64                    2016-02-09 17:00:57
 centos-7-x86_64      jre           2016-02-09 20:03:50
 ```
 
+Создадим конфиг, на основе которого будет создаваться контейнер с CentOS 7 и при этом по умолчанию будут устанавливаться Apache Tomcat и JRE:
+```
+[root@vz ~]# cd /etc/vz/conf/
+[root@vz conf]# cp ve-basic.conf-sample ve-centos-7-x86_64-tomcat-jre.conf-sample
+[root@vz conf]# echo OSTEMPLATE=".centos-7" >> ve-centos-7-x86_64-tomcat-jre.conf-sample
+[root@vz conf]# echo TEMPLATES=".tomcat .jre" >> ve-centos-7-x86_64-tomcat-jre.conf-sample
+```
+
+Создадим кэш для этих приложений:
+```
+[root@vz ~]# vzpkg create appcache --config centos-7-x86_64-tomcat-jre
+[root@vz ~]# vzpkg list appcache
+centos-7-x86_64                    2016-07-31 03:12:28
+     jre
+     tomcat
+```
+
+На основе нового конфигурационного файла создадим и запустим контейнер:
+```
+[root@vz ~]# prlctl create ct5 --config centos-7-x86_64-tomcat-jre --vmtype=ct
+Creating the Virtuozzo Container...
+The Container has been successfully created.
+[root@vz ~]# prlctl start ct5
+Starting the CT...
+The CT has been successfully started.
+```
+
+Проверка предустановки Apache Tomcat и JRE в составе шаблона:
+```
+[root@vz ~]# prlctl exec ct5 systemctl start tomcat
+[root@vz ~]# prlctl exec ct5 systemctl is-active tomcat
+active
+[root@vz ~]# prlctl exec ct5 ls /usr/lib/jvm/
+java-1.7.0-openjdk-1.7.0.111-2.6.7.2.el7_2.x86_64
+jre
+jre-1.7.0
+jre-1.7.0-openjdk
+jre-1.7.0-openjdk-1.7.0.111-2.6.7.2.el7_2.x86_64
+jre-openjdk
+```
+
 ### <a name='templates-сt-vm'></a>Шаблоны контейнеров и виртуальных машин
 Помимо шаблонов гостевых ОС и шаблонов приложений, существует также возможность создания контейнера или виртуальной машины на основе других контейнеров или ВМ.
 
@@ -1252,11 +1293,11 @@ active
 По умолчанию в OpenVZ используется ploop.
 SimFS уже давно не используется, и с версии OpenVZ 7 больше не будет поддерживаться.
 Основные преимущества ploop:
-* Поддержка корректной и надежной изоляции пользователей друг от друга
-* Журнал файловой системы больше не является узким местом
-* Живая миграция
-* Поддержка различных типов хранения данных
-* Быстрое изменение размера контейнера без его отключения
+* поддержка корректной и надежной изоляции пользователей друг от друга
+* журнал файловой системы больше не является узким местом
+* живая миграция
+* поддержка различных типов хранения данных
+* быстрое изменение размера контейнера без его отключения
 
 В ploop игнорируются параметры DISKQUOTA, DISKINODES, QUOTATIME.
 Параметр DISKSPACE не игнорируется.
@@ -1923,10 +1964,10 @@ ha_prio              HA_PRIO
 * проброс устройств (pptp/usb/vlan) (https://habrahabr.ru/post/210460/)
 * `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
-* создание шаблона приложения для автоматического создания контейнера (https://bugs.openvz.org/browse/OVZ-6682)
 * создание шаблона гостевой ОС на основе vztt/vzmktmpl
-* не работает `prlctl capture`
+* не работает `prlctl capture` (возможно нужно протестировать с иксами)
 * `vztop`/`vzps`/`vzstat`/`vznetstat` работают только с UUID (https://bugs.openvz.org/browse/OVZ-6504)
+* не создается снапшот со включенным nfsd (https://bugs.openvz.org/browse/OVZ-6780)
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
 ![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)
