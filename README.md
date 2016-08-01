@@ -1287,7 +1287,7 @@ active
 
 ## [[⬆]](#toc) <a name='simfs-ploop'></a>SimFS и ploop
 Для работы OpenVZ с файлами контейнера, существует два метода:
-* SimFS (каталоги и файлы в файловой системе хост-компьютера)
+* SimFS (каталоги и файлы в файловой системе хост-ноды)
 * ploop (отдельный файл для каждого контейнера)
 
 По умолчанию в OpenVZ используется ploop.
@@ -1299,8 +1299,8 @@ SimFS уже давно не используется, и с версии OpenVZ
 * поддержка различных типов хранения данных
 * быстрое изменение размера контейнера без его отключения
 
-В ploop игнорируются параметры DISKQUOTA, DISKINODES, QUOTATIME.
-Параметр DISKSPACE не игнорируется.
+В ploop игнорируются параметры `DISKQUOTA`, `DISKINODES`, `QUOTATIME`.
+Параметр `DISKSPACE` не игнорируется.
 ploop может работать только с файловой системой ext4.
 
 Для тех, кому требуется использование устаревшего SimFS существует возможность его включения:
@@ -1311,7 +1311,7 @@ VEFSTYPE="simfs"
 [root@vz ~]# prlctl create ct3 --vmtype=ct
 [root@vz ~]# ls /vz/private/731a1572-d609-498f-8c8b-8739e336a210/fs/
 .autorelabel  boot/  etc/   lib/     media/  opt/   root/  sbin/  sys/  usr/  .vzfifo
-bin/          dev/   home/  lib64/   mnt/    proc/   run/  srv/   tmp/  var/         
+bin/          dev/   home/  lib64/   mnt/    proc/  run/   srv/   tmp/  var/         
 ```
 
 Для отключения SimFS нужно в файле `/etc/vz/vz.conf` установить переменную `VEFSTYPE="ext4"`.
@@ -1322,7 +1322,7 @@ bin/          dev/   home/  lib64/   mnt/    proc/   run/  srv/   tmp/  var/
 
 Создание снапшота контейнера:
 ```
-[root@vz ~]# prlctl snapshot ct2 -n FreshCentOS7 -d "Fresh CentOS7 container"
+[root@vz ~]# prlctl snapshot ct2 -n FreshCentOS7 -d "Fresh CentOS 7 container"
 Creating the snapshot...
 The snapshot with id {aa9649d9-9ed1-408a-9463-36ce0cea6ba7} has been successfully created.
 ```
@@ -1341,7 +1341,7 @@ ID: {aa9649d9-9ed1-408a-9463-36ce0cea6ba7}
 Name: FreshCentOS7
 Date: 2016-07-31 01:44:43
 State: poweroff
-Description: Fresh CentOS7 container
+Description: Fresh CentOS 7 container
 ```
 
 Список доступных снапшотов для контейнера:
@@ -1596,19 +1596,21 @@ uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)
 ### <a name='pause-vm'></a>Приостановка виртуальных машин
 Команды управления контейнерами с помощью `prlctl` аналогично используются и для ВМ:
 * `set`
+* `list`
 * `start`
-* `exec`
-* `enter`
-* `console`
-* `status`
 * `stop`
 * `restart`
 * `suspend`
 * `resume`
+* `exec`
+* `enter`
+* `console`
+* `status`
+* `create`
 * `delete`
-* `clone`
 * `mount`
 * `umount`
+* `clone`
 * `move`
 * `snapshot`
 
