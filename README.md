@@ -37,6 +37,7 @@
   - [FUSE](#fuse)
   - [NFS](#nfs)
   - [PPTP](#pptp)
+  - [Netfilter/IPTables](#netfilter)
 10. [SimFS и ploop](#simfs-ploop)
 12. [Управление снапшотами](#snapshots)
 13. [Работа с виртуальными машинами](#vm)
@@ -769,6 +770,17 @@ The CT has been successfully moved.
 dump/       fs/         .lck        .owner      root.hdd/   scripts/    templates/  .uptime     ve.conf     .ve.layout  .ve.xml
 ```
 
+Сброс аптайма контейнера:
+```
+[root@vz ~]# prlctl list -i ct1 | grep Uptime
+Uptime: 01:15:57 (since 2016-07-31 01:18:41)
+[root@vz ~]# prlctl reset-uptime ct1
+Performing reset uptime operation to the CT...
+The CT uptime has been successfully reset.
+[root@vz ~]# prlctl list -i ct1 | grep Uptime
+Uptime: 00:00:00 (since 2016-08-17 23:18:22)
+```
+
 ### <a name='reinstall-ct'></a>Переустановка контейнера
 Для переустановки ОС в контейнере, существует команда `vzctl reinstall`.
 
@@ -973,16 +985,6 @@ processor	: 1
 [root@vz ~]# prlctl set ct1 --nodemask 0
 ```
 
-Аналогично все параметры можно вручную прописать в конфигурационный файл контейнера:
-```
-CPUUNITS="2000"
-CPUMASK="0-3,6,7"
-CPULIMIT="15"
-CPULIMIT_MHZ="600"
-CPUS="2"
-NODEMASK="0"
-```
-
 Утилиты контроля ресурсов процессора, гарантируют любому контейнеру количество времени центрального процессора, которое собственно и получает этот контейнер.
 При этом контейнер может потреблять больше времени, чем определено этой величиной, если нет другого конкурирующего с ним за время CPU сервера.
 
@@ -1028,13 +1030,6 @@ set IOPS limit 300
 ```
 
 По умолчанию значение этого параметра равно 0, что означает отсутствие лимитов.
-
-Параметры можно указать вручную в конфигурационном файле контейнера:
-```
-IOPRIO="6"
-IOLIMIT="20971520"
-IOPSLIMIT="300"
-```
 
 Проверка ограничения пропускной способностей операций ввода/вывода на примере `IOLIMIT`.
 
@@ -1323,6 +1318,42 @@ crc_ccitt              12707  1 ppp_async
 ~�}#�!}!}!} }4}"}&} } } } }%}&}0V��}'}"}(}"ty
 ```
 
+### <a name='netfilter'></a>Netfilter/IPTables
+Netfilter — это межсетевой экран в ядре Linux.
+
+В OpenVZ существует возможность включать или отключать Netfilter для контейнера.
+
+Доступно четыре режима работы Netfilter в контейнере:
+* disabled — отключены все модули
+* stateless (по умолчанию) — все модули включены, за исключением NAT и conntracks
+* stateful — все модули включены, за исключением NAT
+* full — все модули включены
+
+Для изменения параметров Netfilter, контейнер должен быть отключен.
+
+Пример отключения всех модулей Netfilter для контейнера:
+```
+[root@vz ~]# prlctl set ct1 --netfilter disabled
+Set netfilter: disabled
+[root@vz ~]# prlctl exec ct1 iptables -L INPUT
+iptables v1.4.21: can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
+Perhaps iptables or your kernel needs to be upgraded.
+```
+
+Включение всех модулей:
+```
+[root@vz ~]# prlctl set ct1 --netfilter full
+Set netfilter: full
+[root@vz ~]# prlctl exec ct1 iptables -L INPUT
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+ACCEPT     all  --  anywhere             anywhere             state RELATED,ESTABLISHED
+ACCEPT     icmp --  anywhere             anywhere
+ACCEPT     all  --  anywhere             anywhere
+ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp dpt:ssh
+REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+```
+
 ## [[⬆]](#toc) <a name='simfs-ploop'></a>SimFS и ploop
 Для работы OpenVZ с файлами контейнера, существует два метода:
 * SimFS (каталоги и файлы в файловой системе хост-ноды)
@@ -1428,7 +1459,7 @@ Generate the VM configuration for rhel7.
 The VM has been successfully created.
 ```
 
-Ключ `--distribution` указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
+Ключ `--distribution` (`-d`) указывает на семейство ОС или дистрибутив для оптимизации виртуального окружения.
 Список всех официально поддерживаемых ОС:
 ```
 [root@vz ~]# prlctl create vm1 -d list
@@ -1999,7 +2030,7 @@ ha_prio              HA_PRIO
 * управление сетью в OpenVZ (veth/vlan/shaping)
 * проброс устройств (usb/vlan) (https://habrahabr.ru/post/210460/)
 * `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
-* некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--template` `--autostop` `--start-as-user`
+* некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--autostop` `--start-as-user` `--autostart-delay` `--autostop` `--autocompact`
 * создание шаблона гостевой ОС на основе vztt/vzmktmpl
 * не работает `prlctl capture` (возможно нужно протестировать с иксами)
 * `vztop`/`vzps`/`vzstat`/`vznetstat` работают только с UUID (https://bugs.openvz.org/browse/OVZ-6504)
