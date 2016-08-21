@@ -715,7 +715,7 @@ The CT has been successfully restarted.
 
 Приостановка контейнера сохраняет текущее состояние контейнера в файл, позволяя восстановить контейнер в то же состояние, в котором он был приостановлен, это может быть полезно, к примеру если перезагружается хост-нода и нужно сохранить состояние процессов в контейнере.
 
-Параметр `suspend` приостанавливает контейнера, а `resume` — восстанавливает:
+Параметр `suspend` приостанавливает контейнер, а `resume` — восстанавливает:
 ```
 [root@vz ~]# prlctl suspend ct1
 Suspending the CT...
@@ -730,8 +730,6 @@ The CT has been successfully resumed.
 Для удаления контейнера существует параметр `delete` (перед удалением, контейнер нужно сначала остановить):
 ```
 [root@vz ~]# prlctl stop ct1
-Stopping the CT...
-The CT has been successfully stopped.
 [root@vz ~]# prlctl delete ct1
 Removing the CT...
 The CT has been successfully removed.
@@ -742,10 +740,6 @@ The CT has been successfully removed.
 Для того чтобы смонтировать содержимое контейнера без его запуска существует опция `mount`, для размонтирования — `umount`.
 Это может пригодиться например для того, чтобы поправить конфигурационные файлы контейнера с хост-ноды, если контейнер не стартует:
 ```
-[root@vz ~]# prlctl list ct6
-UUID                                    STATUS       IP_ADDR         T  NAME
-{8de0101f-c166-42ce-ad53-a7900b223d46}  stopped      192.168.0.166   CT ct6
-[root@vz ~]# ls /vz/root/8de0101f-c166-42ce-ad53-a7900b223d46/
 [root@vz ~]# prlctl mount ct6
 Mounting the CT...
 The CT has been successfully mounted.
@@ -770,7 +764,7 @@ The CT has been successfully moved.
 dump/       fs/         .lck        .owner      root.hdd/   scripts/    templates/  .uptime     ve.conf     .ve.layout  .ve.xml
 ```
 
-Сброс аптайма контейнера:
+Сброс аптайма (времени создания и работы) контейнера:
 ```
 [root@vz ~]# prlctl list -i ct1 | grep Uptime
 Uptime: 01:15:57 (since 2016-07-31 01:18:41)
@@ -787,14 +781,10 @@ Uptime: 00:00:00 (since 2016-08-17 23:18:22)
 Переустановка и старт контейнера (для переустановки нужно сначала остановить контейнер):
 ```
 [root@vz ~]# prlctl stop ct1
-Stopping the CT...
-The CT has been successfully stopped.
 [root@vz ~]# vzctl reinstall ct1 --skipbackup
 ...
 Container was successfully reinstalled
 [root@vz ~]# prlctl start ct1
-Starting the CT...
-The CT has been successfully started.
 ```
 
 По умолчанию, `vzctl reinstall` без дополнительных параметров, сохраняет все файлы (частную область) прошлого контейнера  в каталог `/old` нового контейнера.
@@ -836,14 +826,11 @@ Failed to start the Container
 Смена hostname:
 ```
 [root@vz ~]# prlctl set ct2 --hostname ct2.vz.localhost
-The CT has been successfully configured.
 ```
 
 После этого контейнер можно запустить:
 ```
 [root@vz ~]# prlctl start ct2
-Starting the CT...
-The CT has been successfully started.
 ```
 
 ### <a name='run-commands'></a>Запуск команд в контейнере с хост-ноды
@@ -1333,8 +1320,10 @@ Netfilter — это межсетевой экран в ядре Linux.
 
 Пример отключения всех модулей Netfilter для контейнера:
 ```
+[root@vz ~]# prlctl stop ct1
 [root@vz ~]# prlctl set ct1 --netfilter disabled
 Set netfilter: disabled
+[root@vz ~]# prlctl start ct1
 [root@vz ~]# prlctl exec ct1 iptables -L INPUT
 iptables v1.4.21: can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
 Perhaps iptables or your kernel needs to be upgraded.
@@ -1342,8 +1331,10 @@ Perhaps iptables or your kernel needs to be upgraded.
 
 Включение всех модулей:
 ```
+[root@vz ~]# prlctl stop ct1
 [root@vz ~]# prlctl set ct1 --netfilter full
 Set netfilter: full
+[root@vz ~]# prlctl start ct1
 [root@vz ~]# prlctl exec ct1 iptables -L INPUT
 Chain INPUT (policy ACCEPT)
 target     prot opt source               destination
@@ -1581,8 +1572,6 @@ Configure VNC: Remote display: mode=manual port=5901
 Запуск виртуальной машины:
 ```
 [root@vz ~]# prlctl start vm1
-Starting the VM...
-The VM has been successfully started.
 ```
 
 Теперь к ВМ можно подключиться по VNC:
@@ -1689,8 +1678,6 @@ The VM has been successfully paused.
 [root@vz ~]# prlctl status vm1
 VM vm1 exist paused
 [root@vz ~]# prlctl start vm1
-Starting the VM...
-The VM has been successfully started.
 ```
 
 ### <a name='templates-vm'></a>Шаблоны конфигураций
@@ -1701,9 +1688,6 @@ The VM has been successfully started.
 [root@vz ~]# mkdir /etc/parallels/samples
 [root@vz ~]# cp /vz/vmprivate/vm1.pvm/config.pvs /etc/parallels/samples/config-1024MB-centos7.pvs
 [root@vz ~]# prlctl create vm3
-Creating the virtual machine...
-Generate the VM configuration for win-2008.
-The VM has been successfully created.
 [root@vz ~]# prlctl list vm3 -i | egrep "cpu|memory|video|hdd0"
 Boot order: hdd0 cdrom0
   cpu cpus=1 VT-x accl=high mode=32 ioprio=4 iolimit='0'
@@ -1825,8 +1809,6 @@ set mem hotplug: 1
 После установки параметра нужно единожды перезагрузить виртуальную машину и затем изменять количество памяти:
 ```
 [root@vz ~]# prlctl restart vm1
-Restarting the VM...
-The VM has been successfully restarted.
 [root@vz ~]# prlctl set vm1 --memsize 1536M
 Set the memsize parameter to 1536Mb.
 [root@vz ~]# prlctl list vm1 -i | grep "memory "
@@ -1849,8 +1831,6 @@ Set the memsize parameter to 1536Mb.
 Перезагрузка виртуальной машины и проверка ресурсов:
 ```
 [root@vz ~]# prlctl restart vm1
-Restarting the VM...
-The VM has been successfully restarted.
 [root@vz ~]# prlctl set vm1 --cpuunits 2000 --cpus 3 --cpumask 0-2
 set cpus(4): 3
 set cpuunits 2000
