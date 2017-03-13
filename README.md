@@ -2021,4 +2021,4 @@ ha_prio              HA_PRIO
 * не создается снапшот со включенным nfsd (https://bugs.openvz.org/browse/OVZ-6780)
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
-![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)(https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
+[![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
