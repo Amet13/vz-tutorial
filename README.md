@@ -55,6 +55,7 @@
 17. [Ссылки](#links)
 18. [TODO](#todo)
 19. [Лицензия](#license)
+20. [Репозиторий проекта](#repo)
 
 ## [[⬆]](#toc) <a name='intro'></a>Введение в виртуализацию
 Виртуализация — предоставление наборов вычислительных ресурсов или их логического объединения, абстрагированных от аппаратной реализации, и обеспечивающих изоляцию вычислительных процессов.
@@ -2022,3 +2023,6 @@ ha_prio              HA_PRIO
 
 ## [[⬆]](#toc) <a name='license'></a>Лицензия
 [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
+
+## [[⬆]](#toc) <a name='repo'></a>Репозиторий проекта
+[![GitHub](https://raw.githubusercontent.com/Amet13/vz-tutorial/master/images/github-link.png)](https://github.com/Amet13/vz-tutorial)
