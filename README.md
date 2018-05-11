@@ -1857,8 +1857,8 @@ KSM обеспечивает системам виртуализации воз�
 
 Для включения KSM в OpenVZ необходимо запустить сервисы `ksm` и `ksmtuned`:
 ```
-[root@vz ~]# systemctl start ksm && systemctl enable ksm
-[root@vz ~]# systemctl start ksmtuned && systemctl enable ksmtuned
+[root@vz ~]# systemctl start ksm ksmtuned
+[root@vz ~]# systemctl enable ksm ksmtuned
 ```
 
 Работоспособность KSM можно проверить на примере общих страниц в памяти (shared memory pages):
