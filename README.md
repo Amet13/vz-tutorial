@@ -2040,14 +2040,10 @@ ha_prio              HA_PRIO
 * https://bugs.openvz.org
 
 ## [⬆](#toc) <a name='todo'></a>TODO
-* управление сетью в OpenVZ (veth/vlan/shaping)
+* управление сетью (veth/vlan/shaping)
 * проброс устройств (usb/vlan) (https://habrahabr.ru/post/210460/)
-* `prlctl` для управления дисковыми квотами, `--diskinodes` для `prlctl` не работает (https://bugs.openvz.org/browse/OVZ-6717) и (https://bugs.openvz.org/browse/OVZ-6505)
 * некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--autostop` `--start-as-user` `--autostart-delay` `--autostop` `--autocompact`
 * создание шаблона гостевой ОС на основе vztt/vzmktmpl
-* не работает `prlctl capture` (возможно нужно протестировать с иксами)
-* `vztop`/`vzps`/`vzstat`/`vznetstat` работают только с UUID (https://bugs.openvz.org/browse/OVZ-6504)
-* не создается снапшот со включенным nfsd (https://bugs.openvz.org/browse/OVZ-6780)
 
 ## [⬆](#toc) <a name='license'></a>Лицензия
 [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
