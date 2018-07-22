@@ -78,9 +78,9 @@
 
 Существует несколько подходов организации виртуализации:
 * эмуляция оборудования (QEMU, Bochs, Dynamips)
-* полная виртуализация (KVM, Hyper-V, VirtualBox, VMware ESXi)
-* паравиртуализация (Xen, L4, Trango)
-* виртуализация уровня ОС (LXC, OpenVZ, Jails, Solaris Zones)
+* полная виртуализация (KVM, Microsoft Hyper-V, Oracle VM VirtualBox, VMware ESXi)
+* паравиртуализация (Xen, L4, Trango Virtual Processors)
+* виртуализация уровня ОС (LXC, OpenVZ, FreeBSD jail, Solaris Zone)
 
 ### <a name='emulation'></a>Эмуляция оборудования
 Эмуляция аппаратных средств является одним из самых сложных методов виртуализации.
