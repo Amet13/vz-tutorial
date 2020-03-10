@@ -55,9 +55,8 @@
 14. [Расширенная информация о контейнерах и ВМ](#extra-info)
 15. [Рекомендации системному администратору](#recommendations)
 16. [Ссылки](#links)
-17. [TODO](#todo)
-18. [Лицензия](#license)
-19. [Репозиторий проекта](#repo)
+17. [Лицензия](#license)
+18. [Репозиторий проекта](#repo)
 
 ## [⬆](#toc) <a name='intro'></a>Введение в виртуализацию
 
@@ -2271,17 +2270,10 @@ ha_prio              HA_PRIO
 - <https://lists.openvz.org>
 - <https://bugs.openvz.org>
 
-## [⬆](#toc) <a name='todo'></a>TODO
-
-- управление сетью (veth/vlan/shaping)
-- проброс устройств (usb/vlan) (<https://habrahabr.ru/post/210460/)>
-- некоторые ключи для `prlctl set`: `--3d-accelerate` `--vertical-sync` `--memguarantee` `--autostop` `--start-as-user` `--autostart-delay` `--autostop` `--autocompact`
-- создание шаблона гостевой ОС на основе vztt/vzmktmpl
-
 ## [⬆](#toc) <a name='license'></a>Лицензия
 
 [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
 
 ## [⬆](#toc) <a name='repo'></a>Репозиторий проекта
 
-[![GitHub](https://raw.githubusercontent.com/Amet13/vz-tutorial/master/images/github-link.png)](https://github.com/Amet13/vz-tutorial)
+[GitHub](https://github.com/Amet13/vz-tutorial)
