@@ -56,7 +56,6 @@
 15. [Рекомендации системному администратору](#recommendations)
 16. [Ссылки](#links)
 17. [Лицензия](#license)
-18. [Репозиторий проекта](#repo)
 
 ## [⬆](#toc) <a name='intro'></a>Введение в виртуализацию
 
@@ -2273,7 +2272,3 @@ ha_prio              HA_PRIO
 ## [⬆](#toc) <a name='license'></a>Лицензия
 
 [![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.ru)
-
-## [⬆](#toc) <a name='repo'></a>Репозиторий проекта
-
-[GitHub](https://github.com/Amet13/vz-tutorial)
